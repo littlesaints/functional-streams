@@ -25,14 +25,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import lombok.Getter;
 
 /**
  * <pre>
@@ -54,20 +56,24 @@ import java.util.stream.Stream;
  * }
  *
  * Note:
+ *
  * - If 'firstMatchOnly' is 'true', the input flows in 'only' the first stream whose predicate matches first as per the order of configuration
- * otherwise it streams to all the 'when' streams whose predicate match (including the 'default' case).
+ *   otherwise it streams to all the 'when' streams whose predicate match (including the 'default' case).
  * </pre>
  *
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  */
 public class Fork<T, Q> implements Consumer<T>, AutoCloseable {
 
-    private final ExecutorService executor;
+    @Getter
+    private final String name = String.valueOf(System.currentTimeMillis());
+
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     private final Supplier<Q> exchangeProvider;
 
-    private final  Function<Q, Supplier<T>> exchangeReaderProvider;
+    private final Function<Q, Supplier<T>> exchangeReaderProvider;
 
     private final Function<Q, Consumer<T>> exchangeWriterProvider;
 
@@ -82,8 +88,7 @@ public class Fork<T, Q> implements Consumer<T>, AutoCloseable {
     private boolean defaultSet;
 
     private Fork(Supplier <Q> exchangeProvider, Function <Q, Supplier <T>> exchangeReaderProvider,
-        Function <Q, Consumer <T>> exchangeWriterProvider, ExecutorService executor, boolean firstMatchOnly) {
-        this.executor = executor;
+        Function <Q, Consumer <T>> exchangeWriterProvider, boolean firstMatchOnly) {
         this.exchangeProvider = exchangeProvider;
         this.exchangeReaderProvider = exchangeReaderProvider;
         this.exchangeWriterProvider = exchangeWriterProvider;
@@ -100,15 +105,29 @@ public class Fork<T, Q> implements Consumer<T>, AutoCloseable {
         }
     }
 
+    /**
+     * Create a Fork instance.
+     *
+     * @param firstMatchOnly set to 'true' if the input needs to be processed only by the first configured match / fork
+     * or 'false' if the input needs to be processed by all matching forks (including if any 'default').
+     * @param <T>
+     * @return a Fork instance
+     */
     public static <T> Fork <T, BlockingQueue<T>> of(boolean firstMatchOnly) {
-        return Fork.of(ForkJoinPool.commonPool(), firstMatchOnly);
+        return Fork.of(LinkedTransferQueue::new, firstMatchOnly);
     }
 
-    public static <T> Fork <T, BlockingQueue<T>> of(ExecutorService executor, boolean firstMatchOnly) {
-        return Fork.of(LinkedBlockingQueue::new, executor, firstMatchOnly);
-    }
-
-    public static <T> Fork <T, BlockingQueue<T>> of(Supplier<BlockingQueue<T>> exchangeProvider, ExecutorService executor, boolean firstMatchOnly) {
+    /**
+     * Create a Fork instance.
+     *
+     * @param exchangeProvider a supplier for the BlockingQueue to be used for input exchange between the source {@link Stream}
+     * and the target 'matching' {@link Stream}s of the forks.
+     * @param firstMatchOnly set to 'true' if the input needs to be processed only by the first configured match / fork
+     * or 'false' if the input needs to be processed by all matching forks (including if any 'default').
+     * @param <T>
+     * @return a Fork instance
+     */
+    public static <T> Fork <T, BlockingQueue<T>> of(Supplier<BlockingQueue<T>> exchangeProvider, boolean firstMatchOnly) {
         final Function<BlockingQueue<T>, Supplier<T>> reader = q -> () -> {
             while (true) {
                 try {
@@ -128,14 +147,21 @@ public class Fork<T, Q> implements Consumer<T>, AutoCloseable {
                 }
             }
         };
-        return Fork.of(exchangeProvider, reader, writer, executor, firstMatchOnly);
+        return Fork.of(exchangeProvider, reader, writer, firstMatchOnly);
     }
 
-    public static <T, Q> Fork <T, Q> of(Supplier<Q> exchangeProvider, Function<Q, Supplier<T>> exchangeReaderProvider,
-        Function<Q, Consumer<T>> exchangeWriterProvider, ExecutorService executor, boolean firstMatchOnly) {
-        return new Fork <>(exchangeProvider, exchangeReaderProvider, exchangeWriterProvider, executor, firstMatchOnly);
+    private static <T, Q> Fork <T, Q> of(Supplier<Q> exchangeProvider, Function<Q, Supplier<T>> exchangeReaderProvider,
+        Function<Q, Consumer<T>> exchangeWriterProvider, boolean firstMatchOnly) {
+        return new Fork <>(exchangeProvider, exchangeReaderProvider, exchangeWriterProvider, firstMatchOnly);
     }
 
+    /**
+     * Configure a match case or fork.
+     *
+     * @param predicate the matching condition or filter.
+     * @param streamProcessor The processing on the {@link Stream} that will have the input value of the predicate matches.
+     * @return this Fork instance
+     */
     public Fork <T, Q> when(Predicate <T> predicate, Consumer <Stream <T>> streamProcessor) {
         if (defaultSet) {
             throw new IllegalStateException("Default is already set !! 'orDefault' case should be set ONLY after all 'when' cases have been configured.");

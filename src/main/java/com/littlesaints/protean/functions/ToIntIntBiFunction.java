@@ -21,7 +21,7 @@ package com.littlesaints.protean.functions;
 /**
  * This is a {@link java.util.function.BiFunction} that takes two primitive int as arguments and returns another int.
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  */
 @FunctionalInterface
 public interface ToIntIntBiFunction {

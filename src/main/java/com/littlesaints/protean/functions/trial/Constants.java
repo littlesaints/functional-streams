@@ -20,7 +20,7 @@ package com.littlesaints.protean.functions.trial;
 
 /**
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  */
 public interface Constants {
 

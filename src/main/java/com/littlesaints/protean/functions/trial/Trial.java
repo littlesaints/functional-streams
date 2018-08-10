@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  *
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  *
  * @see Strategy
  * @see com.littlesaints.protean.functions.streams.Try

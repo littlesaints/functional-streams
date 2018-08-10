@@ -29,7 +29,7 @@ package com.littlesaints.protean.functions;
  * @see {@link com.littlesaints.protean.functions.streams.Try} for details on it's usage.
  * </pre>
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  */
 @FunctionalInterface
 public interface XFunction<T, R> {

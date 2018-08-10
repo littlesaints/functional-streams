@@ -61,7 +61,7 @@ import java.util.function.Predicate;
  * </pre>
  *
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  *
  * @param <T> The input type.
  * @param <R> The return type.

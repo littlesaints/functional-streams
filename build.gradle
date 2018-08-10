@@ -15,6 +15,7 @@ tasks.withType(JavaCompile) {
 }
 
 apply plugin: 'java'
+apply plugin: 'maven-publish'
 
 ext {
     SL4J_VERSION = '1.7.25'
@@ -39,4 +40,34 @@ jar {
 javadoc {
     failOnError = false
     destinationDir = new File("docs/javadocs")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = project.name
+                description = 'Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.'
+                url = 'https://gitlab.com/littlesaints/functional-streams'
+                licenses {
+                    license {
+                        name = 'GNU General Public License, Version 3'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'varunanandrajput'
+                        name = 'Varun Anand'
+                        email = 'varunanandrajput@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://gitlab.com/littlesaints/functional-streams.git'
+                    developerConnection = 'scm:git:ssh://gitlab.com/littlesaints/functional-streams.git'
+                    url = 'https://gitlab.com/littlesaints/functional-streams.git'
+                }
+            }
+        }
+    }
 }

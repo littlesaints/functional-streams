@@ -62,7 +62,7 @@ import com.littlesaints.protean.functions.XFunction;
  * </pre>
  *
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  *
  * @param <T> The input type in the function.
  * @param <U> The value type evaluated by the try construct.

@@ -25,8 +25,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,9 +47,7 @@ public class ForkTest {
 
     private final int expectedFork;
 
-    private final ForkJoinPool pool = new ForkJoinPool(3);
-
-    private CountDownLatch latch;
+    private final AtomicReference<CountDownLatch> latch = new AtomicReference <>();
 
     private final Fork <Integer, BlockingQueue<Integer>> FIRST_MATCH_FORK;
 
@@ -58,14 +56,14 @@ public class ForkTest {
     public ForkTest(String description, Integer[] input, int expectedFork) {
         this.input = input;
         this.expectedFork = expectedFork;
-        FIRST_MATCH_FORK = Fork.<Integer>of(pool, true)
-            .when(i -> i >= 0 && i < 10, s -> s.forEach( i -> {output.get(0).incrementAndGet(); latch.countDown();}))
-            .when(i -> i >= 10 && i < 100, s -> s.forEach( i -> {output.get(1).incrementAndGet(); latch.countDown();}))
-            .orDefault(s -> s.forEach( i -> {output.get(2).incrementAndGet(); latch.countDown();}));
-        ALL_MATCH_FORK = Fork.<Integer>of(pool, false)
-            .when(i -> i >= 0 && i < 10, s -> s.forEach( i -> {output.get(0).incrementAndGet(); latch.countDown();}))
-            .when(i -> i >= 10 && i < 100, s -> s.forEach( i -> {output.get(1).incrementAndGet(); latch.countDown();}))
-            .orDefault(s -> s.forEach( i -> {output.get(2).incrementAndGet(); latch.countDown();}));
+        FIRST_MATCH_FORK = Fork.<Integer>of(true)
+            .when(i -> i >= 0 && i < 10, s -> s.forEach( i -> {output.get(0).incrementAndGet(); latch.get().countDown();}))
+            .when(i -> i >= 10 && i < 100, s -> s.forEach( i -> {output.get(1).incrementAndGet(); latch.get().countDown();}))
+            .orDefault(s -> s.forEach( i -> {output.get(2).incrementAndGet(); latch.get().countDown();}));
+        ALL_MATCH_FORK = Fork.<Integer>of(false)
+            .when(i -> i >= 0 && i < 10, s -> s.forEach( i -> {output.get(0).incrementAndGet(); latch.get().countDown();}))
+            .when(i -> i >= 10 && i < 100, s -> s.forEach( i -> {output.get(1).incrementAndGet(); latch.get().countDown();}))
+            .orDefault(s -> s.forEach( i -> {output.get(2).incrementAndGet(); latch.get().countDown();}));
     }
 
     @Parameterized.Parameters(name = "{index}: input={0} | expectedFork={2}")
@@ -86,26 +84,32 @@ public class ForkTest {
     @Before
     public void beforeTest() {
         IntStream.range(0, 3).forEach(i -> output.set(i, new AtomicInteger(0)));
-        latch = new CountDownLatch(input.length);
     }
 
     @Test
     public void testFirstMatch() throws InterruptedException {
-        test(FIRST_MATCH_FORK, input.length);
+        latch.set(new CountDownLatch(input.length));
+        test(FIRST_MATCH_FORK, 1);
     }
 
-//    @Test
+    @Test
     public void testAllMatch() throws InterruptedException {
-        test(ALL_MATCH_FORK, input.length * 2);
-        Assert.assertEquals(input.length, output.get(2).get());
+        if (expectedFork == 2) {
+            latch.set(new CountDownLatch(input.length));
+            test(ALL_MATCH_FORK, 1);
+        } else {
+            latch.set(new CountDownLatch(input.length * 2));
+            test(ALL_MATCH_FORK, 2);
+            Assert.assertEquals(input.length, output.get(2).get());
+        }
     }
 
-    private void test(Fork<Integer, BlockingQueue<Integer>> fork, int expectedMatches) throws InterruptedException {
+    private void test(Fork<Integer, BlockingQueue<Integer>> fork, int expectedMatchesMultiplier) throws InterruptedException {
 
         Stream <Integer> stream;
         (stream = Arrays.stream(input).onClose(fork::close)).forEach(fork);
 
-        this.latch.await();
+        this.latch.get().await();
 
         AtomicInteger count = new AtomicInteger();
         AtomicInteger sum = new AtomicInteger();
@@ -125,11 +129,9 @@ public class ForkTest {
 
         stream.close();
 
-        Assert.assertEquals(expectedMatches, sum.get());
+        Assert.assertEquals(input.length * expectedMatchesMultiplier, sum.get());
         Assert.assertEquals(input.length, output.get(expectedFork).get());
-        Assert.assertEquals(1, count.get());
-
-//        pool.shutdown();
+        Assert.assertEquals(expectedMatchesMultiplier, count.get());
     }
 
 }

@@ -26,7 +26,7 @@ import com.littlesaints.protean.functions.ToIntIntBiFunction;
  * Factory of functions performing Math operations.
  *
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  */
 public interface Mathematician {
 
@@ -35,7 +35,7 @@ public interface Mathematician {
 	 * calculate the modulo of a number where the number is a power of two.
 	 *
 	 * The method would be inaccurate if the given number is not a power of 2.
-	 * {@link #isPowerOf2} should be used to ascertain whether it is or not.
+	 * {@link #isPowerOfTwo} should be used to ascertain whether it is or not.
 	 * </pre>
 	 * @param x the divisor
 	 * @param powerOf2Y the dividend
@@ -49,6 +49,6 @@ public interface Mathematician {
 	 * @param n the number to validate.
 	 * @return true, if the number is a power of 2 or false otherwise.
 	 */
-	IntPredicate isPowerOf2 = n -> (n & (n - 1)) == 0;
+	IntPredicate isPowerOfTwo = n -> (n & (n - 1)) == 0;
 
 }

@@ -35,7 +35,7 @@ import java.util.stream.StreamSupport;
  * e.g. streaming results from a database.
  * </pre>
  * @author Varun Anand
- * @since 0.1
+ * @since 1.0
  */
 public class StreamHead<T> implements Supplier<Stream<T>>, AutoCloseable {
 
