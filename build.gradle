@@ -1,0 +1,42 @@
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.9'
+}
+
+tasks.withType(JavaCompile) {
+//    options.fork = true
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+apply plugin: 'java'
+
+ext {
+    SL4J_VERSION = '1.7.25'
+    JUNIT_VERSION = '4.12'
+    LOMBOK_VERSION = '1.16.20'
+}
+
+dependencies {
+    compile "org.slf4j:slf4j-api:${SL4J_VERSION}"
+    compile "org.projectlombok:lombok:${LOMBOK_VERSION}"
+    testCompile "org.slf4j:slf4j-simple:${SL4J_VERSION}"
+    testCompile "junit:junit:${JUNIT_VERSION}"
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+javadoc {
+    failOnError = false
+    destinationDir = new File("docs/javadocs")
+}
