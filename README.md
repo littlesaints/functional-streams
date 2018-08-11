@@ -1,6 +1,6 @@
 # functional-streams
 
-### Functions for common data processing and stream flow complexities
+### Functions for stream processing
 
 #### - Fork
 Creates multiple streams from a single stream of inputs. It can be configured for firstMatch
@@ -23,17 +23,17 @@ This means the application can wire the logic to pull inputs for a Stream but it
 
 [more details and example](link to javadoc)
 
-### Functional replacement of Java Control statements, for integration with Java Streams
+### Functional replacement for control statements with Java Streams
 
-#### If
+#### - If
 Functional replacement of an 'if-else' construct. Integrates with Java Streams.
 [more details and example](link to javadoc)
 
-#### Switch
+#### - Switch
 Functional replacement of an 'switch-case' construct. Integrates with Java Streams.
 [more details and example](link to javadoc)
 
-### Functional replacement of Java exception handling, for integration with Java Streams
+### Functional replacement for exception handling with Java Streams
 
 #### - Try
 Functional way of exceptional handling in Java Streams. It supports onSuccess and onFailure actions on any
