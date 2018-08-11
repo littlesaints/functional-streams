@@ -1,3 +1,7 @@
+plugins {
+    id 'java-library'
+    id 'signing'
+}
 
 repositories {
     mavenLocal()
@@ -30,6 +34,11 @@ dependencies {
     testCompile "junit:junit:${JUNIT_VERSION}"
 }
 
+javadoc {
+    failOnError = false
+    destinationDir = new File("docs/javadocs")
+}
+
 jar {
     manifest {
         attributes 'Implementation-Title': project.name,
@@ -37,14 +46,37 @@ jar {
     }
 }
 
-javadoc {
-    failOnError = false
-    destinationDir = new File("docs/javadocs")
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            artifactId = project.name
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
             pom {
                 name = project.name
                 description = 'Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.'
@@ -69,5 +101,11 @@ publishing {
                 }
             }
         }
+    }
+}
+
+model {
+    tasks.generatePomFileForMavenJavaPublication {
+        destination = file("$buildDir/generated-pom.xml")
     }
 }
