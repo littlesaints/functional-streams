@@ -1,0 +1,9 @@
+image: busybox:1.29.2
+
+pages:
+  stage: deploy
+  artifacts:
+    paths:
+      - docs
+  only:
+    - master
