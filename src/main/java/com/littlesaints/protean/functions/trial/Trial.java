@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * <pre>
  * Functional way to re-attempt failures. It supports configuring a re-attempt strategy and can perform a phased-backoff on continuous failures.
  * It's a {@link Supplier} that re-attempts failed attempts to generate/retrieve/supply a value, based on the defined {@link Strategy}.
- * 
+ *
  * It does all the complex state management and tracking of failures, so the application can focus on it's business logic.
  *
  * Usage:
