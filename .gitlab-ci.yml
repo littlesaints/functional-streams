@@ -1,0 +1,10 @@
+image: busybox:1.29.2
+
+pages:
+  stage: deploy
+  script: echo "publishing docs on pages"
+  artifacts:
+    paths:
+      - docs
+  only:
+    - master

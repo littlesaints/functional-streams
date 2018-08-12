@@ -1,0 +1,111 @@
+plugins {
+    id 'java-library'
+    id 'signing'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.9'
+}
+
+tasks.withType(JavaCompile) {
+//    options.fork = true
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+ext {
+    SL4J_VERSION = '1.7.25'
+    JUNIT_VERSION = '4.12'
+    LOMBOK_VERSION = '1.16.20'
+}
+
+dependencies {
+    compile "org.slf4j:slf4j-api:${SL4J_VERSION}"
+    compile "org.projectlombok:lombok:${LOMBOK_VERSION}"
+    testCompile "org.slf4j:slf4j-simple:${SL4J_VERSION}"
+    testCompile "junit:junit:${JUNIT_VERSION}"
+}
+
+javadoc {
+    failOnError = false
+    destinationDir = new File("docs/javadocs")
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.name
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                name = project.name
+                description = 'Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.'
+                url = 'https://gitlab.com/littlesaints/functional-streams'
+                licenses {
+                    license {
+                        name = 'GNU General Public License, Version 3'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'varunanandrajput'
+                        name = 'Varun Anand'
+                        email = 'varunanandrajput@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://gitlab.com/littlesaints/functional-streams.git'
+                    developerConnection = 'scm:git:ssh://gitlab.com/littlesaints/functional-streams.git'
+                    url = 'https://gitlab.com/littlesaints/functional-streams.git'
+                }
+            }
+        }
+    }
+}
+
+model {
+    tasks.generatePomFileForMavenJavaPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+}
