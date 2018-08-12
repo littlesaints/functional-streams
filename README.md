@@ -3,8 +3,7 @@
 ### Functions for stream processing
 
 #### - Fork
-Creates multiple streams from a single stream of inputs. It can be configured for firstMatch
-or allMatch modes.
+Create multiple streams from a single stream of inputs. Configure it for firstMatch or allMatch modes.
 
 [more details and example](link to javadoc)
 
@@ -16,7 +15,7 @@ It does all the complex state management and tracking of failures, so the applic
 [more details and example](link to javadoc)
 
 #### - StreamHead
-Function to generate a Java Stream from non-compatible sources. 
+Function to generate a Stream from non-compatible sources. 
 
 It turns the push based approach of retrieving inputs to a Streams like pull based approach. 
 This means the application can wire the logic to pull inputs for a Stream but it'll be called when the Stream is executed i.e. upon execution of the terminal operation of the Java Stream.

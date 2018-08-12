@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 
 /**
  * <pre>
- * This is a function to substitute use of an 'if-else' construct as a lambda, especially when using java streams.
+ * This is a functional substitute for an 'if-else' construct as a lambda, especially when using java streams.
  *
  * The function returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
  * e.g. Configuring an 'if' condition without an else.

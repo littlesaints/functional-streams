@@ -28,7 +28,7 @@ import java.util.function.Predicate;
 
 /**
  * <pre>
- * This is a function to substitute use of an 'switch-case' construct as a lambda, especially when using java streams.
+ * Functional substitute for a 'switch-case' construct as a lambda, especially when using java streams.
  * It allows a cleaner way to specify a mapper for each condition to be invoked when that condition is met, in a functional manner.
  * The order in which these cases are defined, is honored for matching the conditions. i.e. the mapper for the first condition matched, is invoked. 
  *

@@ -32,9 +32,10 @@ public interface Mathematician {
 
 	/**
 	 * <pre>
-	 * calculate the modulo of a number where the number is a power of two.
+	 * A function to calculate much faster modulo operation with any number that is a power of 2, using a '&' instead of the '%' operator.
+	 * It's useful when doing any conditional routing for data processing, whether relative order needs to be maintained.
 	 *
-	 * The method would be inaccurate if the given number is not a power of 2.
+	 * The method would be inaccurate, if the given number is not a power of 2.
 	 * {@link #isPowerOfTwo} should be used to ascertain whether it is or not.
 	 * </pre>
 	 * @param x the divisor

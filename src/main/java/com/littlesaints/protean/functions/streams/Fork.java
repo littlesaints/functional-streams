@@ -38,8 +38,8 @@ import lombok.Getter;
 
 /**
  * <pre>
- * The purpose of a Fork is to provide alternate condition data pipelines.
- * This can be used in a terminal operation of a java streams pipeline to provide conditional streams for further processing.
+ * Create multiple streams from a single stream of inputs.
+ * The application can configure multiple forks, each with a condition which when met, would push the input in it's corresponding stream.
  *
  * Usage:
  *

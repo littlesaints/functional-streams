@@ -30,9 +30,11 @@ import java.util.stream.StreamSupport;
 
 /**
  * <pre>
- * A closeable stream generator.
- * It facilitates building a {@link Stream} from any source, even the ones that don't have a Streaming API.
- * e.g. streaming results from a database.
+ * Function to generate a Stream from non-compatible sources. e.g. streaming results from a database.
+ *
+ * It turns the push based approach of retrieving inputs to a Streams like pull based approach.
+ * This means the application can wire the logic to pull inputs for a Stream but it'll be called when the Stream is executed i.e. upon execution of the terminal operation of the Java Stream.
+ *
  * </pre>
  * @author Varun Anand
  * @since 1.0

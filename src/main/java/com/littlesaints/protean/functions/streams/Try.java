@@ -27,7 +27,7 @@ import com.littlesaints.protean.functions.XFunction;
 
 /**
  * <pre>
- * This is a function to substitute use of an 'try-catch' construct as a lambda, especially when using java streams.
+ * This is a functional substitute for an 'try-catch' construct as a lambda, especially when using java streams.
  * It allows a cleaner way to specify a mapper to be invoked when an exception get raised, in a functional manner.
  *
  * The function returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
