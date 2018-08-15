@@ -2,9 +2,11 @@ image: busybox:1.29.2
 
 pages:
   stage: deploy
-  script: echo "publishing docs on pages"
+  script: 
+    - mkdir public
+    - cp -R docs/* public
   artifacts:
     paths:
-      - docs
+      - public
   only:
     - master
