@@ -4,7 +4,8 @@ pages:
   stage: deploy
   script: 
     - mkdir public
-    - cp -R docs/* public
+    - cp -R docs/javadoc public
+    - ls -lrt public
   artifacts:
     paths:
       - public
