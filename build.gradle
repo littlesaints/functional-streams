@@ -36,7 +36,8 @@ dependencies {
 
 javadoc {
     failOnError = false
-    destinationDir = new File("docs/javadocs")
+    destinationDir = new File("docs/javadoc")
+    options.overview = "src/main/java/overview.html"
 }
 
 jar {
