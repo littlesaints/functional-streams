@@ -2,9 +2,12 @@ image: busybox:1.29.2
 
 pages:
   stage: deploy
-  script: echo "publishing docs on pages"
+  script:
+    - mkdir -p public/api
+    - cp -R docs/javadoc/* public/api
+    - ls -lrt public/api
   artifacts:
     paths:
-      - docs
+      - public
   only:
     - master
