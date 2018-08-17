@@ -2,10 +2,10 @@ image: busybox:1.29.2
 
 pages:
   stage: deploy
-  script: 
-    - mkdir public
-    - cp -R docs/javadocs public
-    - ls -lrt public
+  script:
+    - mkdir -p public/api
+    - cp -R docs/javadoc/* public/api
+    - ls -lrt public/api
   artifacts:
     paths:
       - public
