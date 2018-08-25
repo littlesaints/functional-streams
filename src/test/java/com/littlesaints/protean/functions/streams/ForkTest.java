@@ -18,11 +18,13 @@
 
 package com.littlesaints.protean.functions.streams;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,12 +33,6 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class ForkTest {
@@ -49,21 +45,15 @@ public class ForkTest {
 
     private final AtomicReference<CountDownLatch> latch = new AtomicReference <>();
 
-    private final Fork <Integer, BlockingQueue<Integer>> FIRST_MATCH_FORK;
-
-    private final Fork <Integer, BlockingQueue<Integer>> ALL_MATCH_FORK;
+    private final ForkJoin<Integer, BlockingQueue<Integer>> FORK;
 
     public ForkTest(String description, Integer[] input, int expectedFork) {
         this.input = input;
         this.expectedFork = expectedFork;
-        FIRST_MATCH_FORK = Fork.<Integer>of(true)
-            .when(i -> i >= 0 && i < 10, s -> s.forEach( i -> {output.get(0).incrementAndGet(); latch.get().countDown();}))
-            .when(i -> i >= 10 && i < 100, s -> s.forEach( i -> {output.get(1).incrementAndGet(); latch.get().countDown();}))
-            .orDefault(s -> s.forEach( i -> {output.get(2).incrementAndGet(); latch.get().countDown();}));
-        ALL_MATCH_FORK = Fork.<Integer>of(false)
-            .when(i -> i >= 0 && i < 10, s -> s.forEach( i -> {output.get(0).incrementAndGet(); latch.get().countDown();}))
-            .when(i -> i >= 10 && i < 100, s -> s.forEach( i -> {output.get(1).incrementAndGet(); latch.get().countDown();}))
-            .orDefault(s -> s.forEach( i -> {output.get(2).incrementAndGet(); latch.get().countDown();}));
+        FORK = ForkJoin.<Integer>newInstance()
+            .fork(i -> i >= 0 && i < 10, s -> s.forEach(i -> {output.get(0).incrementAndGet(); latch.get().countDown();}))
+            .fork(i -> i >= 10 && i < 100, s -> s.forEach(i -> {output.get(1).incrementAndGet(); latch.get().countDown();}))
+            .fork(s -> s.forEach(i -> {output.get(2).incrementAndGet(); latch.get().countDown();}));
     }
 
     @Parameterized.Parameters(name = "{index}: input={0} | expectedFork={2}")
@@ -87,24 +77,18 @@ public class ForkTest {
     }
 
     @Test
-    public void testFirstMatch() throws InterruptedException {
-        latch.set(new CountDownLatch(input.length));
-        test(FIRST_MATCH_FORK, 1);
-    }
-
-    @Test
-    public void testAllMatch() throws InterruptedException {
+    public void test() throws InterruptedException {
         if (expectedFork == 2) {
             latch.set(new CountDownLatch(input.length));
-            test(ALL_MATCH_FORK, 1);
+            test(FORK, 1);
         } else {
             latch.set(new CountDownLatch(input.length * 2));
-            test(ALL_MATCH_FORK, 2);
+            test(FORK, 2);
             Assert.assertEquals(input.length, output.get(2).get());
         }
     }
 
-    private void test(Fork<Integer, BlockingQueue<Integer>> fork, int expectedMatchesMultiplier) throws InterruptedException {
+    private void test(ForkJoin<Integer, BlockingQueue<Integer>> fork, int expectedMatchesMultiplier) throws InterruptedException {
 
         Stream <Integer> stream;
         (stream = Arrays.stream(input).onClose(fork::close)).forEach(fork);

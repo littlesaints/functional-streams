@@ -24,7 +24,7 @@ apply plugin: 'maven-publish'
 ext {
     SL4J_VERSION = '1.7.25'
     JUNIT_VERSION = '4.12'
-    LOMBOK_VERSION = '1.16.20'
+    LOMBOK_VERSION = '1.18.2'
 }
 
 dependencies {
