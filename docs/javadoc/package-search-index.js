@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"com.littlesaints.protean.functions"},{"l":"com.littlesaints.protean.functions.maths"},{"l":"com.littlesaints.protean.functions.streams"},{"l":"com.littlesaints.protean.functions.trial"}]
