@@ -81,6 +81,6 @@ A function to check whether a number is a power of 2. This is useful to know if 
 [more details and javadoc](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary)
 
 ### License
-GNU GENERAL PUBLIC LICENSE Version 3
+GNU LESSER GENERAL PUBLIC LICENSE Version 3
 
 Copyright (C) 2018  Varun Anand
