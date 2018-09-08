@@ -2,7 +2,6 @@ plugins {
     id 'java-library'
     id 'signing'
     id 'maven-publish'
-//    id 'net.researchgate.release' version '2.6.0'
 }
 
 repositories {
@@ -15,7 +14,6 @@ task wrapper(type: Wrapper) {
 }
 
 tasks.withType(JavaCompile) {
-//    options.fork = true
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 }
@@ -132,22 +130,3 @@ def updatePom() {
         }
     }
 }
-
-//release {
-//
-//    preCommitText = ''
-//
-//    scmAdapters = [
-//            net.researchgate.release.GitAdapter
-//    ]
-//
-//    git {
-//        requireBranch = 'master'
-//        pushToRemote = 'origin'
-//        pushToBranchPrefix = ''
-//        commitVersionFileOnly = false
-//        signTag = false
-//    }
-//}
-//
-//afterReleaseBuild.dependsOn publish
