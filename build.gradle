@@ -1,6 +1,8 @@
 plugins {
     id 'java-library'
     id 'signing'
+    id 'maven-publish'
+//    id 'net.researchgate.release' version '2.6.0'
 }
 
 repositories {
@@ -41,28 +43,19 @@ javadoc {
 }
 
 jar {
-    manifest {
-        attributes 'Implementation-Title': project.name,
-                'Implementation-Version': project.version
-    }
+    manifest updateManifest()
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
-    manifest {
-        attributes 'Implementation-Title': project.name,
-                'Implementation-Version': project.version
-    }
+    manifest updateManifest()
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
-    manifest {
-        attributes 'Implementation-Title': project.name,
-                'Implementation-Version': project.version
-    }
+    manifest updateManifest()
 }
 
 artifacts {
@@ -78,29 +71,20 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact javadocJar
-            pom {
-                name = project.name
-                description = 'Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.'
-                url = 'https://gitlab.com/littlesaints/functional-streams'
-                licenses {
-                    license {
-                        name = 'GNU General Public License, Version 3'
-                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'varunanandrajput'
-                        name = 'Varun Anand'
-                        email = 'varunanandrajput@gmail.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:git://gitlab.com/littlesaints/functional-streams.git'
-                    developerConnection = 'scm:git:ssh://gitlab.com/littlesaints/functional-streams.git'
-                    url = 'https://gitlab.com/littlesaints/functional-streams.git'
-                }
+            pom updatePom()
+        }
+    }
+    repositories {
+        maven {
+            name = "sonatype"
+            def props = rootProject.properties
+            credentials {
+                username props['repo.sonatype.user']
+                password props['repo.sonatype.password']
             }
+            def releasesRepoUrl = props['repo.sonatype.snapshots.url']
+            def snapshotsRepoUrl = props['repo.sonatype.releases.url']
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
     }
 }
@@ -110,3 +94,60 @@ model {
         destination = file("$buildDir/generated-pom.xml")
     }
 }
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+def updateManifest() {
+    return {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+    }
+}
+
+def updatePom() {
+    return {
+        name = project.name
+        description = project.description
+        url = 'https://' + project.url
+        def props = rootProject.properties
+        licenses {
+            license {
+                name = props['license.name']
+                url = props['license.url']
+            }
+        }
+        developers {
+            developer {
+                id = 'varunanandrajput'
+                name = 'Varun Anand'
+                email = 'varunanandrajput@gmail.com'
+            }
+        }
+        scm {
+            connection = 'scm:git:git://' + project.url + '.git'
+            developerConnection = 'scm:git:ssh://' + project.url + '.git'
+            url = 'https://' + project.url + '.git'
+        }
+    }
+}
+
+//release {
+//
+//    preCommitText = ''
+//
+//    scmAdapters = [
+//            net.researchgate.release.GitAdapter
+//    ]
+//
+//    git {
+//        requireBranch = 'master'
+//        pushToRemote = 'origin'
+//        pushToBranchPrefix = ''
+//        commitVersionFileOnly = false
+//        signTag = false
+//    }
+//}
+//
+//afterReleaseBuild.dependsOn publish
