@@ -1,15 +1,15 @@
 /*
  *                     functional-streams
- *              Copyright (C) 2018  Varun Anand
+ *              Copyright (C) 2018 Varun Anand
  *
- * This file is part of  functional-streams.
+ * This file is part of functional-streams.
  *
- *  functional-streams is free software: you can redistribute it and/or modify
+ * functional-streams is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * at your option) any later version.
  *
- *  functional-streams is distributed in the hope that it will be useful,
+ * functional-streams is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -60,7 +60,9 @@ import java.util.stream.Stream;
  *   }
  *
  * - Join multiple streams in a single stream.
- *   The application can configure multiple forks, ideally with a predicate / filter which fork met, would push the input in it's corresponding stream.
+ *   The application can configure a single fork, ideally without any predicate / filter.
+ *   The ForkJoin instance should then be subscribed to multiple streams as terminal operation.
+ *   All values pushed in the input streams will be pushed through to the ForkJoin's forked stream, hence combining the inputs of multiple input streams.
  *
  *   Usage:
  *
@@ -69,8 +71,9 @@ import java.util.stream.Stream;
  *          .fork(stream -> stream.map(Objects::toString).map("always true:: "::concat).forEach(System.out::println));
  *   IntStream.range(- 10, 0).boxed().forEach(forkJoin);
  *   IntStream.range(0, 10).boxed().forEach(forkJoin);
+ *   }
  *
- * - Combine 'm' input streams into 'n' output streams.
+ * - Combine 'M' input streams into 'N' output streams.
  *
  *   Usage:
  *
@@ -83,6 +86,7 @@ import java.util.stream.Stream;
  *             stream -> stream.map(Objects::toString).map("small positive:: "::concat).forEach(System.out::println))
  *          // Fork without any predicate i.e. always true
  *         .fork(stream -> stream.map(Objects::toString).map("always true:: "::concat).forEach(System.out::println));
+ *   }
  *
  *   IntStream.range(- 10, 0).boxed().forEach(forkJoin);
  *   IntStream.range(0, 10).boxed().forEach(forkJoin);
@@ -187,8 +191,7 @@ public class ForkJoin<T, Q> implements Consumer<T>, AutoCloseable {
 
     /**
      * <pre>
-     * The default case, which matches fork no other 'fork' case does.
-     * This should be configured after all 'fork' cases have been configured, in code.
+     * Configure a fork.
      * </pre>
      * @param streamProcessor the consumer of the resulting stream
      * @return this ForkJoin instance
