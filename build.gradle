@@ -78,13 +78,13 @@ publishing {
     repositories {
         maven {
             name = "sonatype"
-            def props = rootProject.properties
+            def props = project.properties
             credentials {
                 username props['repo.sonatype.user']
                 password props['repo.sonatype.password']
             }
-            def releasesRepoUrl = props['repo.sonatype.snapshots.url']
-            def snapshotsRepoUrl = props['repo.sonatype.releases.url']
+            def snapshotsRepoUrl = props['repo.sonatype.snapshots.url']
+            def releasesRepoUrl = props['repo.sonatype.releases.url']
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
     }
