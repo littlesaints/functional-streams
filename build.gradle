@@ -41,21 +41,21 @@ javadoc {
 }
 
 jar {
-    from('LICENSE', 'COPYING', 'COPYING.LESSER')
+    from('COPYING', 'COPYING.LESSER')
     manifest updateManifest()
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
-    from('LICENSE', 'COPYING', 'COPYING.LESSER')
+    from('COPYING', 'COPYING.LESSER')
     manifest updateManifest()
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
-    from('LICENSE', 'COPYING', 'COPYING.LESSER')
+    from('COPYING', 'COPYING.LESSER')
     manifest updateManifest()
 }
 
