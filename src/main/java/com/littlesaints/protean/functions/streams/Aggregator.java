@@ -33,8 +33,11 @@ import java.util.function.ToIntFunction;
 
 /**
  * <pre>
- * It can be used to aggregate or batch inputs based on a predicate.
+ * It can be used to aggregate or batch input streams of a type, based on a predicate.
  * A use-case can be of creating an archive, whose size is closest possible to a threshold.
+ *
+ * This class is NOT thread-safe and should not be used with parallel streams.
+ * If there's such a use-case, then the parallel stream can be attached to a {@link ForkJoin} with a single output stream and then an Aggregator can be attached to it.
  *
  * Usage:
  *
@@ -70,7 +73,7 @@ public class Aggregator<T, R> implements Function<T, Optional<R>> {
         return of(metricResolver, predicateToContinueAggregating, c -> c);
     }
 
-        @Override
+    @Override
     public Optional<R> apply(T t) {
         int metric = metricResolver.applyAsInt(t);
         adder.add(metric);

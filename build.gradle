@@ -29,7 +29,7 @@ ext {
 
 dependencies {
     compile "org.slf4j:slf4j-api:${SL4J_VERSION}"
-    compile "org.projectlombok:lombok:${LOMBOK_VERSION}"
+    compileOnly "org.projectlombok:lombok:${LOMBOK_VERSION}"
     testCompile "org.slf4j:slf4j-simple:${SL4J_VERSION}"
     testCompile "junit:junit:${JUNIT_VERSION}"
 }

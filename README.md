@@ -7,13 +7,13 @@ Smart functions for stream processing, fault-tolerance and Java Streams integrat
 ### Functions for stream processing
 
 #### - ForkJoin
-This class facilitates combining multiple streams of input.
+This class facilitates combining multiple streams of same input type.
 
 ![](docs/images/forkjoin.png)
 
 It can be used in the following ways:
  
-- Fork (create) multiple streams from a single stream.
+- Fork (create) multiple streams from a single stream. i.e. to implement a workflow or similar.
   The application can configure multiple forks, with or without predicates.
   If a predicate is configured, the forked stream will receive the input only when the predicate is satisfied i.e. return 'true'.
 
@@ -32,7 +32,7 @@ It does all the complex state management and tracking of failures, so the applic
 [more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/trial/Trial.html)
 
 #### - Aggregator
-It can be used to aggregate or batch inputs based on a predicate.
+It can be used to aggregate or batch input streams of a type, based on a predicate.
 
 A use-case can be of creating an archive, whose size is closest possible to a threshold.
 

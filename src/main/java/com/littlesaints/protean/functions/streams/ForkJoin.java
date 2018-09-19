@@ -36,7 +36,13 @@ import java.util.stream.Stream;
 
 /**
  * <pre>
- * This class facilitates combining multiple {@link Stream}s of input.
+ * This class facilitates combining multiple {@link Stream}s of same input type into one or more output streams.
+ *
+ * The need to fork a stream arises when the application needs to operate mutually-exclusive manipulations on the same set of data and resulting in different outputs.
+ * i.e. when the application needs to implement a workflow or similar.
+ *
+ * In case of an object stream, the same instance is available to the forked streams and hence the application needs to take care NOT to cause race-condition if the same instance is being modified by more than one forked stream.
+ * It's better to copy/clone the instance or create a new instance representing the result of a manipulation.
  *
  * It can be used in the following ways:
  *
