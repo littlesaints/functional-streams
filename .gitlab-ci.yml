@@ -3,7 +3,9 @@ image: busybox:1.29.2
 build:
   stage: build
   script:
-    - ./gradlew clean build -x javadoc
+    - pwd
+    - ls -lrt
+    - gradlew clean build -x javadoc
 
 pages:
   stage: deploy
