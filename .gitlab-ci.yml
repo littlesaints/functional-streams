@@ -1,11 +1,21 @@
 image: busybox:1.29.2
 
+build:
+  stage: build
+  script:
+    - pwd
+    - ls -lrt
+    - gradlew clean build -x javadoc
+
 pages:
   stage: deploy
+  dependencies:
+    - build
   script:
     - mkdir -p public/api
     - cp -R docs/javadoc/* public/api
-    - ls -lrt public/api
+    - mkdir -p public/coverage
+    - cp -R build/reports/tests/* public/
   artifacts:
     paths:
       - public

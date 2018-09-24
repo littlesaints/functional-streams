@@ -20,6 +20,7 @@ tasks.withType(JavaCompile) {
 
 apply plugin: 'java'
 apply plugin: 'maven-publish'
+apply plugin: 'jacoco'
 
 ext {
     SL4J_VERSION = '1.7.25'
@@ -132,4 +133,24 @@ def updatePom() {
             url = 'https://' + project.url + '.git'
         }
     }
+}
+
+jacoco {
+    toolVersion = "0.8.2"
+    reportsDir = file("$buildDir/reports/tests/coverage")
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/reports/tests/coverage")
+    }
+}
+
+test {
+    jacoco {
+        append = false
+    }
+    finalizedBy jacocoTestReport
 }
