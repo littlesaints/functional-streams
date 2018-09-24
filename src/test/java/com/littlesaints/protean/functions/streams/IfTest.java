@@ -43,6 +43,18 @@ public class IfTest {
         .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5")
         .orElse(i -> "i < 0");
 
+    private static final If <Integer, String> IFOptional = If. <Integer, String>test(i -> i >= 10)
+            .thenO(i -> Optional.of("i >= 10"))
+            .elseIfO(i -> i >= 5 && i < 10, i -> Optional.of("5 <= i < 10"))
+            .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5")
+            .elseO(i -> Optional.of("i < 0"));
+
+    private static final If <Integer, String> IFWithoutThen = If. <Integer, String>test(i -> i >= 999999)
+            .elseIf(i -> i >= 10, i -> "i >= 10")
+            .elseIf(i -> i >= 5 && i < 10, i -> "5 <= i < 10")
+            .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5")
+            .elseIf(i -> i < 0, i -> "i < 0");
+
     public IfTest(int input, String expected) {
         this.input = input;
         this.expected = expected;
@@ -68,6 +80,28 @@ public class IfTest {
                 .map(Optional::get)
                 .findAny()
                 .orElse("unknown"));
+    }
+
+    @Test
+    public void testOptional() {
+        Assert.assertEquals(expected,
+                Stream.of(input)
+                        .map(IFOptional)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .findAny()
+                        .orElse("unknown"));
+    }
+
+    @Test
+    public void testNoThen() {
+        Assert.assertEquals(expected,
+                Stream.of(input)
+                        .map(IFWithoutThen)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .findAny()
+                        .orElse("unknown"));
     }
 
 }

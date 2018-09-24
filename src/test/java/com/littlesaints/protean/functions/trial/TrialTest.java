@@ -20,6 +20,8 @@
 
 package com.littlesaints.protean.functions.trial;
 
+import com.littlesaints.protean.functions.streams.If;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -37,10 +39,9 @@ public class TrialTest {
     public void test_exit_after_n_retries_for_unbounded_counter() {
         final int simulatedTries = 20;
         final Strategy strategy = Strategy.builder()
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .build();
-
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .build();
         testRetries(simulatedTries, strategy);
     }
 
@@ -53,10 +54,26 @@ public class TrialTest {
     public void test_exit_after_n_retries() {
         final int simulatedTries = 5;
         final Strategy strategy = Strategy.builder()
-            .maxTriesWithDelay(10)
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
+                .maxTriesWithYield(5)
+                .maxTriesWithDelay(5)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
 
+        testRetries(simulatedTries, strategy);
+    }
+
+    @Test
+    public void test_exit_after_n_retries_setters() {
+        final int simulatedTries = 5;
+        final Strategy strategy = new Strategy();
+        strategy.setMaxTriesWithYield(5);
+        strategy.setMaxTriesWithDelay(5);
+        strategy.setTriesUntilDelayIncrease(5);
+        strategy.setDelayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS);
+        strategy.setDelayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS);
+
+        Assert.assertNotNull(strategy.toString());
+        Assert.assertNotNull(Strategy.builder().toString());
         testRetries(simulatedTries, strategy);
     }
 
@@ -64,10 +81,10 @@ public class TrialTest {
     public void test_exit_after_max_retries() {
         final int maxTries = 5;
         final Strategy strategy = Strategy.builder()
-            .maxTriesWithDelay(maxTries)
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .build();
+                .maxTriesWithDelay(maxTries)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .build();
 
         testRetries(maxTries, strategy);
     }
@@ -79,10 +96,10 @@ public class TrialTest {
         final int maxTries = 10;
 
         final Strategy strategy = Strategy.builder()
-            .maxTriesWithDelay(maxTries)
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .triesUntilDelayIncrease(delayIncreaseRetries)
-            .delayThresholdInMillis(maxDelayInMillis).build();
+                .maxTriesWithDelay(maxTries)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .triesUntilDelayIncrease(delayIncreaseRetries)
+                .delayThresholdInMillis(maxDelayInMillis).build();
 
         testRetryDelay(maxTries + 10, maxDelayInMillis, strategy);
     }
@@ -92,11 +109,11 @@ public class TrialTest {
         int delayIncreaseRetries = 2;
 
         final Strategy strategy = Strategy.builder()
-            .maxTriesWithDelay(10)
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .triesUntilDelayIncrease(delayIncreaseRetries)
-            .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS * 3)
-            .build();
+                .maxTriesWithDelay(10)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .triesUntilDelayIncrease(delayIncreaseRetries)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS * 3)
+                .build();
 
         testRetryDelay(delayIncreaseRetries * 2, strategy.getDelayBetweenTriesInMillis() * 2, strategy);
     }
@@ -105,9 +122,9 @@ public class TrialTest {
     public void testResetAfterMaxRetries() {
         final int maxRetries = 5;
         final Strategy strategy = Strategy.builder()
-            .maxTriesWithDelay(maxRetries)
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
+                .maxTriesWithDelay(maxRetries)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
 
         testRetries(maxRetries, strategy, 2);
     }
@@ -118,13 +135,30 @@ public class TrialTest {
         int maxDelayInMillis = 4;
 
         final Strategy strategy = Strategy.builder()
-            .maxTriesWithDelay(10)
-            .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-            .triesUntilDelayIncrease(delayIncreaseRetries)
-            .delayThresholdInMillis(maxDelayInMillis)
-            .build();
+                .maxTriesWithDelay(10)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .triesUntilDelayIncrease(delayIncreaseRetries)
+                .delayThresholdInMillis(maxDelayInMillis)
+                .build();
 
         testRetryDelay(delayIncreaseRetries * 2, strategy.getDelayBetweenTriesInMillis() * 2, strategy, 2);
+    }
+
+    @Test
+    public void testNullable() {
+        final Strategy strategy = Strategy.builder().maxTriesWithDelay(5).build();
+        final AtomicInteger counter = new AtomicInteger(0);
+        Trial<Integer> trial = Trial.ofNullable(strategy, () -> counter.incrementAndGet() == 2 ? -1 : null);
+        assertEquals(Integer.valueOf(-1), trial.get().orElse(-2));
+    }
+
+    @Test
+    public void testOptional() {
+        final Strategy strategy = Strategy.builder().triesUntilDelayIncrease(5).maxTriesWithDelay(5).build();
+        final AtomicInteger counter = new AtomicInteger(0);
+        Trial<Optional<Integer>> trial = Trial.ofOptional(strategy, () -> counter.incrementAndGet() == 3 ? -1 : null);
+        assertEquals(Integer.valueOf(-1), trial.getSupplier().get().orElse(Optional.empty()).orElse(-2));
+        assertEquals(3, trial.getRemainingTriesUntilDelayIncrease());
     }
 
     private void testRetryDelay(int simulatedTries, long expectedDelayInMillis, Strategy strategy) {
@@ -133,7 +167,7 @@ public class TrialTest {
 
     private void testRetryDelay(int simulatedInvocations, long expectedDelayInMillis, Strategy strategy, int runs) {
         final AtomicInteger counter = new AtomicInteger(0);
-        Trial <Integer> trial = Trial.of(strategy, counter::incrementAndGet, i -> i == simulatedInvocations);
+        Trial<Integer> trial = Trial.of(strategy, counter::incrementAndGet, i -> i == simulatedInvocations);
         for (int i = 0; i < runs; i++) {
             counter.set(0);
             trial.get();
@@ -147,7 +181,7 @@ public class TrialTest {
 
     private void testRetries(final int simulatedInvocations, Strategy strategy, int runs) {
         final AtomicInteger counter = new AtomicInteger(0);
-        Trial <Integer> trial = Trial.of(strategy, counter::incrementAndGet, i -> i == simulatedInvocations);
+        Trial<Integer> trial = Trial.of(strategy, counter::incrementAndGet, i -> i == simulatedInvocations);
 
         Optional<Integer> result;
         for (int i = 0; i < runs; i++) {
@@ -157,8 +191,7 @@ public class TrialTest {
             long maxAttemptedTries = trial.getAttemptedTriesWithYield() + trial.getAttemptedTriesWithDelay();
             if (strategy.getMaxTriesWithDelay() == Constants.UNBOUNDED_TRIES) {
                 assertEquals(maxAttemptedTries, 0);
-            }
-            else {
+            } else {
                 //Unbounded attempts cause counter to NOT increment, to avoid overflow.
                 assertEquals(simulatedInvocations, maxAttemptedTries + 1);
                 assertEquals(counter.get(), maxAttemptedTries + 1);
@@ -175,7 +208,6 @@ public class TrialTest {
             result *= num;
         }
         return result;
-//		return (int)(Math.pow(num, pow));
     }
 
 }
