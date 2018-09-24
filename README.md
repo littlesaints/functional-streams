@@ -2,14 +2,23 @@
 
 Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.
 
-[API documentation](https://littlesaints.gitlab.io/functional-streams/api/)
+[API documentation][api]
 
-### Functions for stream processing
+## Contents
+- Functions integrated with Java Streams
+    - [Stream processing extensions](#stream-processing-extensions)
+    - [Functional replacement for control statements](#functional-replacement-for-control-statements)
+    - [Functional replacement for exception handling](#functional-replacement-for-exception-handling)
+    - [General purpose functions](#general-purpose-functions)
+- [Usage](#usage)
+- [License](#license)
+
+### Stream processing extensions
 
 #### - ForkJoin
 This class facilitates combining multiple streams of same input type.
 
-![](docs/images/forkjoin.png)
+![forkjoin.png](docs/images/forkjoin.png)
 
 It can be used in the following ways:
  
@@ -22,23 +31,23 @@ It can be used in the following ways:
 
 - Combine 'm' input streams into 'n' output streams.
  
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/ForkJoin.html)
+[more details and example][api-forkjoin]
 
 #### - Trial
 Functional way to re-attempt failures. It supports configuring a re-attempt strategy and can perform a phased-backoff on continuous failures. 
 
 It does all the complex state management and tracking of failures, so the application can focus on it's business logic.
 
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/trial/Trial.html)
+[more details and example][api-trial]
 
 #### - Aggregator
 It can be used to aggregate or batch input streams of a type, based on a predicate.
 
 A use-case can be of creating an archive, whose size is closest possible to a threshold.
 
-![](docs/images/aggregator.png)
+![aggregator.png](docs/images/aggregator.png)
 
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Aggregator.html)
+[more details and example][api-aggregator]
 
 #### - StreamSource
 Function to generate a Stream from non-compatible sources. 
@@ -46,21 +55,21 @@ Function to generate a Stream from non-compatible sources.
 It turns the push based approach of retrieving inputs to a Streams like pull based approach. 
 This means the application can wire the logic to pull inputs for a Stream but it'll be called when the Stream is executed i.e. upon execution of the terminal operation of the Java Stream.
 
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/StreamSource.html)
+[more details and example][api-streamsource]
 
-### Functional replacement for control statements with Java Streams
+### Functional replacement for control statements
 
 #### - If
 Functional replacement of an 'if-else' construct. Integrates with Java Streams.
 
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/If.html)
+[more details and example][api-if]
 
 #### - Switch
 Functional replacement of an 'switch-case' construct. Integrates with Java Streams.
 
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Switch.html)
+[more details and example][api-switch]
 
-### Functional replacement for exception handling with Java Streams
+### Functional replacement for exception handling
 
 #### - Try
 Functional way of exceptional handling in Java Streams. It supports onSuccess and onFailure actions on any
@@ -68,7 +77,7 @@ operation that can cause an exception.
 
 It's a good fit for handling external api calls.
 
-[more details and example](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Try.html)
+[more details and example][api-try]
 
 ### General purpose functions
 
@@ -77,14 +86,40 @@ A function to calculate much faster modulo operation with any number that is a p
 
 It's useful when doing any conditional routing for data processing, whether relative order needs to be maintained.
 
-[more details and javadoc](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary)
+[more details and javadoc][api-mathematician-fields]
 
 #### - isPowerOfTwo
 A function to check whether a number is a power of 2. This is useful to know if a faster modulo operation can be performed. 
 
-[more details and javadoc](https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary)
+[more details and javadoc][api-mathematician-fields]
+
+### Usage
+Download the [latest version][latest-release] from [Maven Central][releases] or depend via Gradle:
+
+```gradle
+compile 'io.littlesaints.gitlab:functional-streams:1.0.0'
+```
+
+Snapshot versions are available in [Sonatype's snapshots repository][snapshots].
+
+## Maintainer
+[@varunanandrajput](https://gitlab.com/varunanandrajput)
 
 ### License
-GNU LESSER GENERAL PUBLIC LICENSE Version 3
+[GNU Lesser General Public License v3](lgplv3)
 
-Copyright (C) 2018  Varun Anand
+Copyright (C) 2018 Varun Anand
+
+[latest-release]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams/latest
+[releases]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams
+[snapshots]: https://oss.sonatype.org/content/repositories/snapshots/io/gitlab/littlesaints/functional-streams
+[api]: https://littlesaints.gitlab.io/functional-streams/api
+[api-forkjoin]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/ForkJoin.html
+[api-aggregator]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Aggregator.html
+[api-streamsource]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/StreamSource.html
+[api-trial]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/trial/Trial.html
+[api-if]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/If.html
+[api-switch]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Switch.html
+[api-try]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Try.html
+[api-mathematician-fields]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary
+[lgplv3]: https://www.gnu.org/licenses/lgpl-3.0.en.html

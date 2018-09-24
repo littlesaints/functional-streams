@@ -67,6 +67,9 @@ public class ForkJoinTest {
 
     @Test(timeout = 5000)
     public void test() throws InterruptedException {
+
+        Assert.assertNotNull(forkJoin.getName());
+
         Stream <Integer> stream;
         (stream = IntStream.range(-100, 100).boxed().parallel().onClose(forkJoin::close)).forEach(forkJoin);
 

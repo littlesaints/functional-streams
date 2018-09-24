@@ -42,6 +42,16 @@ public class SwitchTest {
         .when(i -> i >= 10 && i < 100 , (ii, ll) -> "tens")
         .orDefault((i, l) -> "hundreds or more");
 
+    private static final Switch <Integer, Integer, String> SWITCHOptional = Switch.<Integer, Integer, String>evaluate(Math::abs)
+        .whenO(i -> i >= 0 && i < 10 , (ii, ll) -> Optional.of("units"))
+        .when(i -> i >= 10 && i < 100 , (ii, ll) -> "tens")
+        .defaultO((i, l) -> Optional.of("hundreds or more"));
+
+    private static final Switch <Integer, Integer, String> SWITCHNoDefault = Switch.<Integer, Integer, String>evaluate(Math::abs)
+        .whenO(i -> i >= 0 && i < 10 , (ii, ll) -> Optional.of("units"))
+        .when(i -> i >= 10 && i < 100 , (ii, ll) -> "tens")
+        .whenO(i -> i >= 100, (i, l) -> Optional.of("hundreds or more"));
+
     public SwitchTest(int input, String expected) {
         this.input = input;
         this.expected = expected;
@@ -64,6 +74,28 @@ public class SwitchTest {
         Assert.assertEquals(expected,
             Stream.of(input)
                 .map(SWITCH)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findAny()
+                .orElse("unknown"));
+    }
+
+    @Test
+    public void testOptional() {
+        Assert.assertEquals(expected,
+            Stream.of(input)
+                .map(SWITCHOptional)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findAny()
+                .orElse("unknown"));
+    }
+
+    @Test
+    public void testNoDefault() {
+        Assert.assertEquals(expected,
+            Stream.of(input)
+                .map(SWITCHNoDefault)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .findAny()
