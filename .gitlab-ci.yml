@@ -5,7 +5,7 @@ build:
   script:
     - pwd
     - ls -lrt gradlew
-    - java -v
+    - java -version
     - ./gradlew clean build -x javadoc
 
 pages:
