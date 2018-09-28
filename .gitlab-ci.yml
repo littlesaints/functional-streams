@@ -1,11 +1,13 @@
-image: gradle:4.10.2-jre10-slim
+image: openjdk:10-jre-slim
+
+cache:
+  paths:
+  - .gradle/wrapper
+  - .gradle/caches
 
 build:
   stage: build
   script:
-    - pwd
-    - ls -lrt gradlew
-    - java -version
     - ./gradlew clean build -x javadoc
 
 pages:
