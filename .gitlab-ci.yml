@@ -11,7 +11,7 @@ build:
   script:
     - ./gradlew clean build -x javadoc
     - cat build/reports/tests/coverage/index.html | grep -o 'Total[^%]*%' | sed -e 's/Total.*>/test_coverage=/g'
-  coverage: '/test_coverage=\d+\.\d+/'
+  coverage: '/test_coverage=(.*)%/'
   artifacts:
     expire_in: 10 mins
     reports:
