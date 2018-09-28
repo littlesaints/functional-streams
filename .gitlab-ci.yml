@@ -10,13 +10,6 @@ build:
   script:
     - ./gradlew clean build -x javadoc
 
-build:
-  stage: build
-  script:
-    - pwd
-    - ls -lrt
-    - gradlew clean build -x javadoc
-
 pages:
   stage: deploy
   dependencies:
