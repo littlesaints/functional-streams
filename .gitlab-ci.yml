@@ -4,8 +4,8 @@ build:
   stage: build
   script:
     - pwd
-    - ls -lrt
-    - gradlew clean build -x javadoc
+    - ls -lrt gradlew
+    - ./gradlew clean build -x javadoc
 
 pages:
   stage: deploy
