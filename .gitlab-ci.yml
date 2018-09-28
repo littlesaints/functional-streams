@@ -17,8 +17,8 @@ pages:
   script:
     - mkdir -p public/api
     - cp -R docs/javadoc/* public/api
-    - mkdir -p public/coverage
-    - cp -R build/reports/tests/* public/
+    - mkdir -p public/tests
+    - cp -R build/reports/tests public/tests
   artifacts:
     paths:
       - public
