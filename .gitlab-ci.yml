@@ -15,7 +15,7 @@ build:
     reports:
       junit: build/test-results/test/TEST-*.xml
     paths:
-      - build/tests
+      - build/reports/tests
 
 pages:
   stage: deploy
