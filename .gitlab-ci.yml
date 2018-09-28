@@ -1,10 +1,11 @@
-image: busybox:1.29.2
+image: gradle:4.10.2-jre10-slim
 
 build:
   stage: build
   script:
     - pwd
     - ls -lrt gradlew
+    - java -v
     - ./gradlew clean build -x javadoc
 
 pages:
