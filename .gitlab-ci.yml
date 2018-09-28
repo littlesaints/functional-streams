@@ -25,6 +25,7 @@ pages:
     - mkdir -p public/api
     - mv docs/javadoc public/api
     - mv build/reports/tests public
+    - ls -lrt public
   artifacts:
     paths:
       - public
