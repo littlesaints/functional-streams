@@ -1,6 +1,7 @@
 image: openjdk:10-jre-slim
 
 cache:
+  key: $CI_PROJECT_NAMESPACE
   paths:
   - .gradle/wrapper
   - .gradle/caches
@@ -9,6 +10,12 @@ build:
   stage: build
   script:
     - ./gradlew clean build -x javadoc
+  artifacts:
+    expire_in: 10 mins
+    reports:
+      junit: build/test-results/test/TEST-*.xml
+    paths:
+      - build/tests
 
 pages:
   stage: deploy
@@ -16,9 +23,8 @@ pages:
     - build
   script:
     - mkdir -p public/api
-    - cp -R docs/javadoc/* public/api
-    - mkdir -p public/tests
-    - cp -R build/reports/tests public/tests
+    - mv docs/javadoc public/api
+    - mv build/reports/tests public
   artifacts:
     paths:
       - public
