@@ -3,8 +3,8 @@ image: openjdk:10-jre-slim
 cache:
   key: $CI_PROJECT_NAMESPACE
   paths:
-  - .gradle/wrapper
-  - .gradle/caches
+  - /root/.gradle/wrapper
+  - /root/.gradle/caches
 
 build:
   stage: build
