@@ -1,4 +1,14 @@
-image: busybox:1.29.2
+image: openjdk:10-jre-slim
+
+cache:
+  paths:
+  - .gradle/wrapper
+  - .gradle/caches
+
+build:
+  stage: build
+  script:
+    - ./gradlew clean build -x javadoc
 
 build:
   stage: build
