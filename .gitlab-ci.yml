@@ -22,11 +22,9 @@ pages:
   dependencies:
     - build
   script:
-    - mkdir -p public/api
+    - mkdir -p public
     - mv docs/javadoc public/api
-    - ls -lrt public
     - mv build/reports/tests public
-    - ls -lrt public
   artifacts:
     paths:
       - public
