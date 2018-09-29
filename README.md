@@ -2,7 +2,7 @@
 
 Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.
 
-[API documentation][api]
+[![javadoc][api_badge]][api] [![maven-central][maven-central_badge]][maven-central] [![build][build_badge]][build] [![coverage][coverage_badge]][coverage] [![tests][tests_badge]][tests] [![license][license_badge]][lgplv3]
 
 ## Contents
 - Functions integrated with Java Streams
@@ -113,6 +113,7 @@ Copyright (C) 2018 Varun Anand
 [latest-release]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams/latest
 [releases]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams
 [snapshots]: https://oss.sonatype.org/content/repositories/snapshots/io/gitlab/littlesaints/functional-streams
+[api_badge]: https://img.shields.io/badge/docs-API-orange.svg                                                 
 [api]: https://littlesaints.gitlab.io/functional-streams/api
 [api-forkjoin]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/ForkJoin.html
 [api-aggregator]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Aggregator.html
@@ -122,4 +123,13 @@ Copyright (C) 2018 Varun Anand
 [api-switch]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Switch.html
 [api-try]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Try.html
 [api-mathematician-fields]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary
+[maven-central_badge]: https://maven-badges.herokuapp.com/maven-central/io.littlesaints.gitlab/functional-streams/badge.svg
+[maven-central]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams
+[build_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/build.svg
+[build]: https://gitlab.com/littlesaints/functional-streams/pipelines
+[coverage_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/coverage.svg?job=build
+[coverage]: https://littlesaints.gitlab.io/functional-streams/coverage
+[tests_badge]: https://img.shields.io/badge/report-tests-blue.svg
+[tests]: https://littlesaints.gitlab.io/functional-streams/test
+[license_badge]: https://img.shields.io/badge/license-LGPLv3-blue.svg
 [lgplv3]: https://www.gnu.org/licenses/lgpl-3.0.en.html
