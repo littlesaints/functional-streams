@@ -128,8 +128,8 @@ Copyright (C) 2018 Varun Anand
 [build_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/build.svg
 [build]: https://gitlab.com/littlesaints/functional-streams/pipelines
 [coverage_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/coverage.svg?job=build
-[coverage]: https://littlesaints.gitlab.io/functional-streams/coverage
+[coverage]: https://littlesaints.gitlab.io/functional-streams/tests/coverage
 [tests_badge]: https://img.shields.io/badge/report-tests-blue.svg
-[tests]: https://littlesaints.gitlab.io/functional-streams/test
+[tests]: https://littlesaints.gitlab.io/functional-streams/tests/test
 [license_badge]: https://img.shields.io/badge/license-LGPLv3-blue.svg
 [lgplv3]: https://www.gnu.org/licenses/lgpl-3.0.en.html
