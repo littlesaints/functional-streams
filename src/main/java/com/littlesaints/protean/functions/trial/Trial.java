@@ -49,10 +49,13 @@ import lombok.extern.slf4j.Slf4j;
  *
  * Null value returned from an operation is considered an empty response and an {@link Optional#empty()} is returned.
  *
- * Note for interpreting the available statistics:
+ * <b>Note:</b>
  *
- * If the very first trial succeeds, it doesn't count towards either {@link Trial#attemptedTriesWithYield} or {@link Trial#attemptedTriesWithDelay}
+ * If the very first trial succeeds, it doesn't count towards either attemptedTriesWithYield or attemptedTriesWithDelay.
  * Hence, the total attempts made by a Trial instance will be one more than the sum of attemptedTriesWithXXX metrics.
+ *
+ * Available statistics:
+ * {@link #getCurrentDelayBetweenTriesInMillis()}, {@link #getAttemptedTriesWithYield()}, {@link #getAttemptedTriesWithDelay()} and {@link #getRemainingTriesUntilDelayIncrease()}
  * </pre>
  *
  * @author Varun Anand
@@ -69,16 +72,12 @@ public class Trial<T> implements Supplier<Optional<T>> {
     @Getter
     private final Supplier<Optional<T>> supplier;
 
-    @Getter
     private long currentDelayBetweenTriesInMillis;
 
-    @Getter
     private int attemptedTriesWithDelay;
 
-    @Getter
     private int attemptedTriesWithYield;
 
-    @Getter
     private long remainingTriesUntilDelayIncrease;
 
     /**
@@ -174,4 +173,19 @@ public class Trial<T> implements Supplier<Optional<T>> {
         return retry;
     }
 
+    public long getCurrentDelayBetweenTriesInMillis() {
+        return currentDelayBetweenTriesInMillis;
+    }
+
+    public int getAttemptedTriesWithDelay() {
+        return attemptedTriesWithDelay;
+    }
+
+    public int getAttemptedTriesWithYield() {
+        return attemptedTriesWithYield;
+    }
+
+    public long getRemainingTriesUntilDelayIncrease() {
+        return remainingTriesUntilDelayIncrease;
+    }
 }

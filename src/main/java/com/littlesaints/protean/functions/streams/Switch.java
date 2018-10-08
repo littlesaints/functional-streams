@@ -65,7 +65,8 @@ import java.util.function.Predicate;
  * }
  *
  * Note:
- * - The use of 'default' case is also supported but it needs to be defined after all conditional cases have been defined, otherwise a runtime exception is raised.
+ * - The use of 'default' case is also supported but it needs to be defined after all conditional cases have been defined,
+ *   otherwise a runtime exception is raised during initialization.
  * </pre>
  *
  * @author Varun Anand
