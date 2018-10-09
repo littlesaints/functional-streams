@@ -97,7 +97,7 @@ A function to check whether a number is a power of 2. This is useful to know if 
 Download the [latest version][latest-release] from [Maven Central][releases] or depend via Gradle:
 
 ```gradle
-compile 'io.littlesaints.gitlab:functional-streams:1.0.0'
+compile 'io.gitlab.littlesaints:functional-streams:1.0.0'
 ```
 
 Snapshot versions are available in [Sonatype's snapshots repository][snapshots].
