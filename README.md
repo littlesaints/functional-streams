@@ -2,7 +2,7 @@
 
 Smart functions for stream processing, fault-tolerance and Java Streams integration of non-streaming APIs and language constructs.
 
-[![javadoc][api_badge]][api] [![maven-central][maven-central_badge]][maven-central] [![build][build_badge]][build] [![coverage][coverage_badge]][coverage] [![tests][tests_badge]][tests] [![license][license_badge]][lgplv3]
+[![javadoc][api_badge]][api] [![maven-central][maven-central_badge]][latest-release] [![build][build_badge]][build] [![coverage][coverage_badge]][coverage] [![tests][tests_badge]][tests] [![license][license_badge]][lgplv3]
 
 ## Contents
 - Functions integrated with Java Streams
@@ -123,8 +123,7 @@ Copyright (C) 2018 Varun Anand
 [api-switch]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Switch.html
 [api-try]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Try.html
 [api-mathematician-fields]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary
-[maven-central_badge]: https://maven-badges.herokuapp.com/maven-central/io.littlesaints.gitlab/functional-streams/badge.svg
-[maven-central]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams
+[maven-central_badge]: https://maven-badges.herokuapp.com/maven-central/io.gitlab.littlesaints/functional-streams/badge.svg
 [build_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/build.svg
 [build]: https://gitlab.com/littlesaints/functional-streams/pipelines
 [coverage_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/coverage.svg?job=build
