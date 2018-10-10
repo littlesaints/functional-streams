@@ -94,7 +94,7 @@ A function to check whether a number is a power of 2. This is useful to know if 
 [more details and javadoc][api-mathematician-fields]
 
 ### Usage
-Download the [latest version][latest-release] from [Maven Central][releases] or depend via Gradle:
+Download the latest version from [MVN Repository][latest-release], [Maven Central][maven-central] or depend via Gradle:
 
 ```gradle
 compile 'io.gitlab.littlesaints:functional-streams:1.0.0'
@@ -111,7 +111,6 @@ Snapshot versions are available in [Sonatype's snapshots repository][snapshots].
 Copyright (C) 2018 Varun Anand
 
 [latest-release]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams/latest
-[releases]: https://mvnrepository.com/artifact/io.gitlab.littlesaints/functional-streams
 [snapshots]: https://oss.sonatype.org/content/repositories/snapshots/io/gitlab/littlesaints/functional-streams
 [api_badge]: https://img.shields.io/badge/docs-API-orange.svg                                                 
 [api]: https://littlesaints.gitlab.io/functional-streams/api
@@ -124,6 +123,7 @@ Copyright (C) 2018 Varun Anand
 [api-try]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Try.html
 [api-mathematician-fields]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/maths/Mathematician.html#field.summary
 [maven-central_badge]: https://maven-badges.herokuapp.com/maven-central/io.gitlab.littlesaints/functional-streams/badge.svg
+[maven-central]: https://search.maven.org/artifact/io.gitlab.littlesaints/functional-streams
 [build_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/build.svg
 [build]: https://gitlab.com/littlesaints/functional-streams/pipelines
 [coverage_badge]: https://gitlab.com/littlesaints/functional-streams/badges/master/coverage.svg?job=build
