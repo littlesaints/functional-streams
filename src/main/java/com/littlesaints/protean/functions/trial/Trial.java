@@ -20,15 +20,13 @@
 
 package com.littlesaints.protean.functions.trial;
 
-import static com.littlesaints.protean.functions.trial.Constants.UNBOUNDED_TRIES;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.util.function.UnaryOperator;
 
 /**
  * <pre>
@@ -39,15 +37,15 @@ import lombok.extern.slf4j.Slf4j;
  *
  * Usage:
  * {@code
- *     Trial<Integer> trial = Trial.of(Strategy.DEFAULT, () -> {
- *         Integer result = 1; //retrieve / calculate value
+ *     Trial<Integer> trial = Trial.ofNullable(Strategy.DEFAULT, () -> {
+ *         Integer result = 1; // a calculation that can fail, which will then be re-attempted based on the configured strategy
  *         return result;
  *     });
+ *
+ *     Stream.generate(trial).limit(10).forEach(System.out::println);
  * }
  *
- * Instances of this class are NOT thread-safe. However, they can re-used after invoking the 'reset' method.
- *
- * Null value returned from an operation is considered an empty response and an {@link Optional#empty()} is returned.
+ * Instances of this class are NOT thread-safe. However, they can re-used.
  *
  * <b>Note:</b>
  *
@@ -62,130 +60,48 @@ import lombok.extern.slf4j.Slf4j;
  * @since 1.0
  *
  * @see Strategy
+ * @see FnTrial
  * @see com.littlesaints.protean.functions.streams.Try
  */
 @Slf4j
-public class Trial<T> implements Supplier<Optional<T>> {
+public class Trial<T> extends AbstractTrial<T> implements Supplier<T> {
 
-    private final Strategy strategy;
-
-    @Getter
-    private final Supplier<Optional<T>> supplier;
-
-    private long currentDelayBetweenTriesInMillis;
-
-    private int attemptedTriesWithDelay;
-
-    private int attemptedTriesWithYield;
-
-    private long remainingTriesUntilDelayIncrease;
+    private final Supplier<T> supplier;
 
     /**
      * Creates a Trial with the given {@link Strategy} and an Operation that needs to executed.
-     * The operation is considered success, if it resulted in a non-null value.
+     * The operation is considered success, if it results in a non-null value.
+     * {@code null} is returned, is all trials are exhausted.
      */
     public static <T> Trial<T> ofNullable(Strategy strategy, Supplier<T> op) {
-        return of(strategy, op, Objects::nonNull);
+        return of(strategy, op, Objects::nonNull, t -> null);
     }
 
     /**
      * Creates a Trial with the given {@link Strategy} and an Operation that needs to executed.
-     * The operation is considered success, if it resulted in a non-empty {@link Optional}.
+     * The operation is considered success, if it results in a non-null value.
+     * A non-empty {@link Optional} is returned in case of a success or an empty {@link Optional}, otherwise.
      */
     public static <T> Trial<Optional<T>> ofOptional(Strategy strategy, Supplier<T> op) {
-        return of(strategy, () -> Optional.ofNullable(op.get()), Optional::isPresent);
+        return of(strategy, () -> Optional.ofNullable(op.get()), Optional::isPresent, t -> Optional.empty());
     }
 
     /**
      * Creates a Trial with the given {@link Strategy} and an Operation that needs to executed.
-     * The operation is considered success, if it resulted in a value that tests positive with the given predicate.
+     * The operation is considered success, if it results in a value that tests positive with the given predicate.
      */
-    public static <T> Trial<T> of(Strategy strategy, Supplier<T> op, Predicate<T> successfulOpTest) {
-        return new Trial<>(strategy, op, successfulOpTest);
+    public static <T> Trial<T> of(Strategy strategy, Supplier<T> op, Predicate<T> successfulOpTest, UnaryOperator<T> onTrialsExhaustion) {
+        return new Trial<>(strategy, op, successfulOpTest, onTrialsExhaustion);
     }
 
-    private Trial(Strategy strategy, Supplier<T> op, Predicate<T> successfulOpTest) {
-        this.strategy = strategy.toBuilder().build();
-        this.supplier = () -> {
-            reset();
-            T result;
-            do {
-                if (successfulOpTest.test(result = op.get())){
-                    return Optional.ofNullable(result);
-                }
-            } while (test());
-            return Optional.empty();
-        };
+    private Trial(Strategy strategy, Supplier<T> op, Predicate<T> successfulOpTest, UnaryOperator<T> onTrialsExhaustion) {
+        super(strategy, successfulOpTest, onTrialsExhaustion);
+        this.supplier = op;
     }
 
     @Override
-    public Optional <T> get() {
-        return supplier.get();
+    public T get() {
+        return get(supplier);
     }
 
-    private void reset() {
-        attemptedTriesWithYield = 0;
-        attemptedTriesWithDelay = 0;
-        currentDelayBetweenTriesInMillis = strategy.getDelayBetweenTriesInMillis();
-        remainingTriesUntilDelayIncrease = strategy.getTriesUntilDelayIncrease();
-    }
-
-    private boolean test() {
-
-        if (attemptedTriesWithYield < strategy.getMaxTriesWithYield()) {
-            Thread.yield();
-            ++attemptedTriesWithYield;
-            return true;
-        }
-
-        boolean retry = false;
-        if (strategy.getMaxTriesWithDelay() == UNBOUNDED_TRIES) {
-            //If unbounded retries, then don't increment attemptedTriesWithDelay or it'll eventually overflow.
-            retry = true;
-        }
-        else if (attemptedTriesWithDelay < strategy.getMaxTriesWithDelay()) {
-            ++attemptedTriesWithDelay;
-            retry = true;
-        }
-
-        if (retry) {
-            //can't do better atm.
-            try {
-                Thread.sleep(currentDelayBetweenTriesInMillis);
-            } catch (InterruptedException e) {
-                log.warn("Error during Thread.sleep.", e);
-            }
-
-            // iff delayThresholdInMillis isn't reached.
-            if (currentDelayBetweenTriesInMillis < strategy.getDelayThresholdInMillis()) {
-                if (remainingTriesUntilDelayIncrease > 0) {
-                    --remainingTriesUntilDelayIncrease;
-                    if (remainingTriesUntilDelayIncrease == 0) {
-                        // reset
-                        remainingTriesUntilDelayIncrease = strategy.getTriesUntilDelayIncrease();
-                        // double the wait time bounded by the threshold
-                        currentDelayBetweenTriesInMillis = Math.min(currentDelayBetweenTriesInMillis * 2, strategy.getDelayThresholdInMillis());
-                    }
-                }
-            }
-        }
-
-        return retry;
-    }
-
-    public long getCurrentDelayBetweenTriesInMillis() {
-        return currentDelayBetweenTriesInMillis;
-    }
-
-    public int getAttemptedTriesWithDelay() {
-        return attemptedTriesWithDelay;
-    }
-
-    public int getAttemptedTriesWithYield() {
-        return attemptedTriesWithYield;
-    }
-
-    public long getRemainingTriesUntilDelayIncrease() {
-        return remainingTriesUntilDelayIncrease;
-    }
 }

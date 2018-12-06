@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import javax.sql.rowset.Predicate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -37,10 +38,28 @@ public class TryTest {
 
     private final Boolean expected;
 
-    private static final Try <String, Integer, Boolean> TRY = Try.<String, Integer, Boolean>of(Integer::parseInt)
+    private static final Try <String, Integer, Optional<Boolean>> TRY = Try.wrapWithOptional(Try.<String, Integer, Boolean>of(Integer::parseInt)
         .onSuccess(i -> true)
         .onFailure((i, e) -> e == null)
-        .onFinally(i -> System.out.println("Finally :: ".concat(i)));
+        .onFinally(i -> System.out.println("Finally :: ".concat(i))));
+
+    private static final Try <String, Integer, Optional<Boolean>> TRY_NO_ON_SUCCESS = Try.wrapWithOptional(Try.<String, Integer, Boolean>of(Integer::parseInt)
+            .onFailure((i, e) -> e == null)
+            .onFinally(i -> System.out.println("Finally :: ".concat(i))));
+
+    private static final Try <String, Integer, Optional<Boolean>> TRY_NO_ON_FAILURE = Try.wrapWithOptional(Try.<String, Integer, Boolean>of(Integer::parseInt)
+            .onSuccess(i -> true)
+            .onFinally(i -> System.out.println("Finally :: ".concat(i))));
+
+    private static final Try <String, Integer, Optional<Boolean>> TRY_NO_ON_FINALLY = Try.wrapWithOptional(
+            Try.<String, Integer, Boolean>of(s -> {
+                if (s.startsWith("XX")) {
+                    throw new Error();
+                } else {
+                    return Integer.parseInt(s);
+                }})
+            .onSuccess(i -> true)
+            .onFailure((i, e) -> e == null));
 
     public TryTest(String input, Boolean expected) {
         this.input = input;
@@ -66,4 +85,36 @@ public class TryTest {
                 .findAny()
                 .orElse(null));
     }
+
+    @Test
+    public void testNoSuccess() {
+        Assert.assertFalse(
+            Stream.of(input)
+                .map(TRY_NO_ON_SUCCESS)
+                .map(o -> o.orElse(false))
+                .findAny()
+                .orElse(null));
+    }
+
+    @Test
+    public void testNoFailure() {
+        Assert.assertTrue(
+            Stream.of(input)
+                .map(TRY_NO_ON_FAILURE)
+                .map(o -> o.orElse(true))
+                .findAny()
+                .orElse(null));
+    }
+
+    @Test
+    public void testNoFinally() {
+        Assert.assertEquals(expected,
+            Stream.of(input)
+                .map(TRY_NO_ON_FINALLY)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findAny()
+                .orElse(null));
+    }
+
 }
