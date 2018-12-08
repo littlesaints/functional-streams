@@ -32,7 +32,7 @@ import java.util.function.Function;
  * This is a functional substitute for an 'try-catch' construct as a lambda, especially when using java streams.
  * It allows a cleaner way to specify a mapper to be invoked when an exception get raised, in a functional manner.
  *
- * The function {@link #wrapWithOptional()} can be used to create a function, that returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
+ * The function {@link #wrapWithOptional(Try)} can be used to create a function, that returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
  * e.g. Configuring an 'try' condition without specifying the value mapper in an exception scenario, because one needs a return value.
  *
  * Usage:
