@@ -20,7 +20,7 @@
 
 package com.littlesaints.protean.functions.streams;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -31,7 +31,7 @@ import java.util.function.Predicate;
  * <pre>
  * This is a functional substitute for an 'if-else' construct as a lambda, especially when using java streams.
  *
- * The function returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
+ * The function {@link #wrapWithOptional(If)} can be used to create a function that returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
  * e.g. Configuring an 'if' condition without an else.
  *
  * Usage:
@@ -71,75 +71,66 @@ import java.util.function.Predicate;
  * @see Switch
  *
  */
-public class If<T, R> implements Function<T, Optional<R>> {
+public class If<T, R> implements Function<T, R> {
 
     private final Predicate<T> test;
 
-    private Function<T, Optional<R>> thenMapper = t -> Optional.empty();
+    private Function<T, R> thenMapper = t -> null;
 
-    private Map<Predicate<T>, Function<T, Optional<R>>> elseIfs = new HashMap <>(0);
+    private Map<Predicate<T>, Function<T, R>> elseIfs = new LinkedHashMap<>(0);
 
-    private Function<T, Optional<R>> elseMapper = t -> Optional.empty();
+    private Function<T, R> elseMapper = t -> null;
 
     private If(Predicate <T> test) {
         this.test = test;
+    }
+
+    /**
+     * @see #wrapWithOptional()
+     */
+    public static <T, R> If<T, Optional<R>> wrapWithOptional(If<T, R> fx) {
+        return fx.wrapWithOptional();
     }
 
     public static <T, R> If<T, R> test(Predicate<T> predicate) {
         return new If <>(predicate);
     }
 
-    public If<T, R> then(Function<T, R> mapper) {
-        return thenOptional(t -> Optional.ofNullable(mapper.apply(t)));
-    }
-
     /**
-     * Same as {@link #thenOptional(Function)}. It's named differently to make it easier for use.
+     * <pre>
+     * Create an If function that returns an {@link Optional}.
+     *
+     * This is useful when the application doesn't want to handle {@code null} directly but the code can return {@code null}
+     * or there's no code mapped to 'else' or 'then' construct.
+     * </pre>
+     * @return a copy of this 'If' function.
      */
-    public If<T, R> thenO(Function<T, Optional<R>> mapper) {
-        return thenOptional(mapper);
+    public If<T, Optional<R>> wrapWithOptional() {
+        final If<T, Optional<R>> fx = If.<T, Optional<R>>test(test)
+                .then(t -> Optional.ofNullable(thenMapper.apply(t)))
+                .orElse(t -> Optional.ofNullable(elseMapper.apply(t)));
+        elseIfs.forEach((k, v) -> fx.elseIfs.put(k, t -> Optional.ofNullable(v.apply(t))));
+        return fx;
     }
 
-    public If<T, R> thenOptional(Function<T, Optional<R>> mapper) {
+    public If<T, R> then(Function<T, R> mapper) {
         thenMapper = mapper;
         return this;
     }
 
     public If<T, R> elseIf(Predicate<T> predicate, Function<T, R> mapper) {
-        return elseIfOptional(predicate, t -> Optional.ofNullable(mapper.apply(t)));
-    }
-
-    /**
-     * Same as {@link #elseIfOptional(Predicate, Function)}. It's named differently to make it easier for use.
-     */
-    public If<T, R> elseIfO(Predicate<T> predicate, Function<T, Optional<R>> mapper) {
-        return elseIfOptional(predicate, mapper);
-    }
-
-    public If<T, R> elseIfOptional(Predicate<T> predicate, Function<T, Optional<R>> mapper) {
         elseIfs.put(predicate, mapper);
         return this;
     }
 
     public If<T, R> orElse(Function<T, R> mapper) {
-        return elseOptional(t -> Optional.ofNullable(mapper.apply(t)));
-    }
-
-    /**
-     * Same as {@link #elseOptional(Function)}. It's named differently to make it easier for use.
-     */
-    public If<T, R> elseO(Function<T, Optional<R>> mapper) {
-        return elseOptional(mapper);
-    }
-
-    public If<T, R> elseOptional(Function<T, Optional<R>> mapper) {
         elseMapper = mapper;
         return this;
     }
 
     @Override
-    public Optional<R> apply(T t) {
-        final Optional<R> result;
+    public R apply(T t) {
+        final R result;
         if (test.test(t)) {
             result = thenMapper.apply(t);
         } else {

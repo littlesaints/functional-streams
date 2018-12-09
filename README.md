@@ -40,6 +40,13 @@ It does all the complex state management and tracking of failures, so the applic
 
 [more details and example][api-trial]
 
+#### - FnTrial
+Functional way to re-attempt failures upon executing a function. It supports configuring a re-attempt strategy and can perform a phased-backoff on continuous failures. 
+
+It does all the complex state management and tracking of failures, so the application can focus on it's business logic.
+
+[more details and example][api-fntrial]
+
 #### - Aggregator
 It can be used to aggregate or batch input streams of a type, based on a predicate.
 
@@ -97,7 +104,7 @@ A function to check whether a number is a power of 2. This is useful to know if 
 Download the latest version from [MVN Repository][latest-release], [Maven Central][maven-central] or depend via Gradle:
 
 ```gradle
-compile 'io.gitlab.littlesaints:functional-streams:1.0.0'
+compile 'io.gitlab.littlesaints:functional-streams:1.1.0'
 ```
 
 Snapshot versions are available in [Sonatype's snapshots repository][snapshots].

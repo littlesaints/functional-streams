@@ -43,17 +43,16 @@ public class IfTest {
         .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5")
         .orElse(i -> "i < 0");
 
-    private static final If <Integer, String> IFOptional = If. <Integer, String>test(i -> i >= 10)
-            .thenO(i -> Optional.of("i >= 10"))
-            .elseIfO(i -> i >= 5 && i < 10, i -> Optional.of("5 <= i < 10"))
-            .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5")
-            .elseO(i -> Optional.of("i < 0"));
-
-    private static final If <Integer, String> IFWithoutThen = If. <Integer, String>test(i -> i >= 999999)
-            .elseIf(i -> i >= 10, i -> "i >= 10")
+    private static final If <Integer, Optional<String>> IFOptional = If.wrapWithOptional(If. <Integer, String>test(i -> i >= 10)
+            .then(i -> "i >= 10")
             .elseIf(i -> i >= 5 && i < 10, i -> "5 <= i < 10")
             .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5")
-            .elseIf(i -> i < 0, i -> "i < 0");
+            .orElse(i -> "i < 0"));
+
+    private static final If <Integer, String> IFWithoutThen = If. <Integer, String>test(i -> i < 0)
+            .elseIf(i -> i >= 10, i -> "i >= 10")
+            .elseIf(i -> i >= 5 && i < 10, i -> "5 <= i < 10")
+            .elseIf(i -> i >= 0 && i < 5, i -> "0 <= i < 5");
 
     public IfTest(int input, String expected) {
         this.input = input;
@@ -76,8 +75,6 @@ public class IfTest {
         Assert.assertEquals(expected,
             Stream.of(input)
                 .map(IF)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .findAny()
                 .orElse("unknown"));
     }
@@ -98,8 +95,7 @@ public class IfTest {
         Assert.assertEquals(expected,
                 Stream.of(input)
                         .map(IFWithoutThen)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
+                        .map(s -> s == null ? "i < 0" : s)
                         .findAny()
                         .orElse("unknown"));
     }

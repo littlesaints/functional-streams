@@ -28,7 +28,7 @@ package com.littlesaints.protean.functions;
  * This is most useful when used as a lambda expression in a {@link com.littlesaints.protean.functions.streams.Try} function.
  * Which would not involve referencing this Interface directly in code.
  *
- * @see {@link com.littlesaints.protean.functions.streams.Try} for details on it's usage.
+ * @see com.littlesaints.protean.functions.streams.Try for details on it's usage.
  * </pre>
  * @author Varun Anand
  * @since 1.0
@@ -36,6 +36,6 @@ package com.littlesaints.protean.functions;
 @FunctionalInterface
 public interface XFunction<T, R> {
 
-    R apply(T t) throws Throwable;
+    R apply(T t) throws Exception;
 
 }

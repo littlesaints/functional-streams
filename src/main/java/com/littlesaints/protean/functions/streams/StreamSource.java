@@ -30,11 +30,12 @@ import java.util.stream.StreamSupport;
 
 /**
  * <pre>
- * Function to generate a Stream from non-compatible sources. e.g. streaming results from a database.
+ * Function to generate a <b>finite</b> Stream from non-compatible sources. e.g. streaming results from a database.
  *
  * It turns the push based approach of retrieving inputs to a Streams like pull based approach.
- * This means the application can wire the logic to pull inputs for a Stream but it'll be called fork the Stream is executed i.e. upon execution of the terminal operation of the Java Stream.
+ * This means the application can wire the logic to pull inputs from a Stream but they'll be pulled only upon execution of the terminal operation of the Java Stream.
  *
+ * Moreover, the application can stop the stream by invoking {@link Stream#close()} unlike for streams created by {@link Stream#generate(Supplier)}.
  * </pre>
  *
  * @author Varun Anand
@@ -44,11 +45,24 @@ public class StreamSource<T> implements Supplier<Stream<T>> {
 
     private final Supplier<T> reader;
 
+    private final Supplier<Boolean> doContinue;
+
     private class _Spliterator implements Spliterator<T>, AutoCloseable {
 
         private final Predicate<Consumer<? super T>> advanceAction;
 
         private final AtomicBoolean isClosing = new AtomicBoolean(false);
+
+        private _Spliterator(Supplier<T> reader, Supplier<Boolean> doContinue) {
+            advanceAction = action -> {
+                T val = reader.get();
+                if (doContinue.get()) {
+                    action.accept(val);
+                    return !isClosing.get();
+                }
+                return false;
+            };
+        }
 
         private _Spliterator(Supplier<T> reader) {
             advanceAction = action -> {
@@ -83,15 +97,25 @@ public class StreamSource<T> implements Supplier<Stream<T>> {
     }
 
     public static <T> StreamSource<T> of(Supplier<T> reader) {
-        return new StreamSource<>(reader);
+        return new StreamSource<>(reader, null);
     }
 
-    private StreamSource(Supplier<T> reader) {
+    public static <T> StreamSource<T> of(Supplier<T> reader, Supplier<Boolean> doContinue) {
+        return new StreamSource<>(reader, doContinue);
+    }
+
+    private StreamSource(Supplier<T> reader, Supplier<Boolean> doContinue) {
         this.reader = reader;
+        this.doContinue = doContinue;
     }
 
     public Stream<T> get() {
-        final _Spliterator spliterator = new _Spliterator(reader);
+        final _Spliterator spliterator;
+        if (doContinue == null) {
+            spliterator = new _Spliterator(reader);
+        } else {
+            spliterator = new _Spliterator(reader, doContinue);
+        }
         return StreamSupport.stream(spliterator, false).onClose(spliterator::close);
     }
 

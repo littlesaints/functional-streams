@@ -20,19 +20,19 @@
 
 package com.littlesaints.protean.functions.streams;
 
+import com.littlesaints.protean.functions.XFunction;
+
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import com.littlesaints.protean.functions.XFunction;
 
 /**
  * <pre>
  * This is a functional substitute for an 'try-catch' construct as a lambda, especially when using java streams.
  * It allows a cleaner way to specify a mapper to be invoked when an exception get raised, in a functional manner.
  *
- * The function returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
+ * The function {@link #wrapWithOptional(Try)} can be used to create a function, that returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
  * e.g. Configuring an 'try' condition without specifying the value mapper in an exception scenario, because one needs a return value.
  *
  * Usage:
@@ -42,7 +42,7 @@ import com.littlesaints.protean.functions.XFunction;
  *      .map(i -> {
  *          try (100 / i) {
  *              return "positive";
- *          } catch (Throwable e) {
+ *          } catch (Exception e) {
  *              return "negative";
  *          }})
  *      .forEach(System.out::println);
@@ -73,13 +73,13 @@ import com.littlesaints.protean.functions.XFunction;
  * @see com.littlesaints.protean.functions.trial.Trial
  * @see If
  */
-public class Try<T, U, R> implements Function<T, Optional<R>> {
+public class Try<T, U, R> implements Function<T, R> {
 
     private final XFunction<T, U> mapper;
 
-    private Function<U, Optional<R>> successMapper = u -> Optional.empty();
+    private Function<U, R> successMapper = u -> null;
 
-    private BiFunction<T, Throwable, Optional<R>> failureMapper = (t, e) -> Optional.empty();
+    private BiFunction<T, Exception, R> failureMapper = (t, e) -> null;
 
     private Consumer<T> finallyMapper = t -> {};
 
@@ -92,20 +92,42 @@ public class Try<T, U, R> implements Function<T, Optional<R>> {
     }
 
     /**
+     * @see #wrapWithOptional()
+     */
+    public static <T, U, R> Try<T, U, Optional<R>> wrapWithOptional(Try<T, U, R> fx) {
+        return fx.wrapWithOptional();
+    }
+
+    /**
+     * <pre>
+     * Create a Try function that returns an {@link Optional}.
+     *
+     * This is useful when the application doesn't want to handle {@code null} directly but the code can return {@code null}
+     * or there's no code mapped to 'onSuccess' or 'onFailure' construct.
+     * </pre>
+     * @return a copy of this 'Try' function.
+     */
+    public Try<T, U, Optional<R>> wrapWithOptional() {
+        return Try.<T, U, Optional<R>>of(mapper)
+            .onSuccess(u -> Optional.ofNullable(successMapper.apply(u)))
+            .onFailure((t, x) -> Optional.ofNullable(failureMapper.apply(t, x)))
+            .onFinally(finallyMapper);
+    }
+    /**
      * @param successMapper to be called when the Try succeeds
      * @return this Try instance
      */
     public Try<T, U, R> onSuccess(Function <U, R> successMapper) {
-        this.successMapper = u -> Optional.ofNullable(successMapper.apply(u));
+        this.successMapper = successMapper;
         return this;
     }
 
     /**
-     * @param failureMapper to be called when the Try results in a throwable being thrown
+     * @param failureMapper to be called when the Try results in an exception being thrown
      * @return this Try instance
      */
-    public Try<T, U, R> onFailure(BiFunction<T, Throwable, R> failureMapper) {
-        this.failureMapper = (t, e) -> Optional.ofNullable(failureMapper.apply(t, e));
+    public Try<T, U, R> onFailure(BiFunction<T, Exception, R> failureMapper) {
+        this.failureMapper = failureMapper;
         return this;
     }
 
@@ -119,11 +141,13 @@ public class Try<T, U, R> implements Function<T, Optional<R>> {
     }
 
     @Override
-    public Optional<R> apply(T t) {
+    public R apply(T t) {
         try {
             return successMapper.apply(mapper.apply(t));
-        } catch (Throwable e) {
+        } catch (Exception e) {
             return failureMapper.apply(t, e);
+        } catch (Throwable r) {
+            return failureMapper.apply(t, new Exception(r));
         } finally {
             finallyMapper.accept(t);
         }

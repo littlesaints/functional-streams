@@ -20,7 +20,7 @@
 
 package com.littlesaints.protean.functions.streams;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -34,7 +34,7 @@ import java.util.function.Predicate;
  * It allows a cleaner way to specify a mapper for each condition to be invoked when that condition is met, in a functional manner.
  * The order in which these cases are defined, is honored for matching the conditions. i.e. the mapper for the first condition matched, is invoked. 
  *
- * The function returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
+ * The function {@link #wrapWithOptional(Switch)} can be used to create a function, that returns an {@link Optional} of the return Type, since there can be cases where there are no matching conditions provided to map a value.
  *
  * Usage:
  *
@@ -78,16 +78,39 @@ import java.util.function.Predicate;
  *
  * @see Try
  */
-public class Switch<T, U, R> implements Function<T, Optional<R>> {
+public class Switch<T, U, R> implements Function<T, R> {
 
     private final Function<T, U> test;
 
-    private Map<Predicate<U>, BiFunction<T, U, Optional<R>>> cases = new HashMap<>(0);
+    private Map<Predicate<U>, BiFunction<T, U, R>> cases = new LinkedHashMap<>(0);
 
-    private BiFunction<T, U, Optional<R>> defaultCase = (t, u) -> Optional.empty();
+    private BiFunction<T, U, R> defaultCase = (t, u) -> null;
 
     private Switch(Function<T, U> test) {
         this.test = test;
+    }
+
+    /**
+     * @see #wrapWithOptional()
+     */
+    public static <T, U, R> Switch<T, U, Optional<R>> wrapWithOptional(Switch<T, U, R> fx) {
+        return fx.wrapWithOptional();
+    }
+
+    /**
+     * <pre>
+     * Create a Switch function that returns an {@link Optional}.
+     *
+     * This is useful when the application doesn't want to handle {@code null} directly but the code can return {@code null}
+     * or there's no code mapped to 'default' or any case construct.
+     * </pre>
+     * @return a copy of this 'Switch' function.
+     */
+    public Switch<T, U, Optional<R>> wrapWithOptional() {
+        final Switch<T, U, Optional<R>> fx = Switch.<T, U, Optional<R>>evaluate(test)
+                .orDefault((t, u) -> Optional.ofNullable(defaultCase.apply(t, u)));
+        cases.forEach((k, v) -> fx.cases.put(k, (t, u) -> Optional.ofNullable(v.apply(t, u))));
+        return fx;
     }
 
     public static <T, U, R> Switch<T, U, R> evaluate(Function<T, U> mapper) {
@@ -95,39 +118,17 @@ public class Switch<T, U, R> implements Function<T, Optional<R>> {
     }
 
     public Switch<T, U, R> when(Predicate<U> predicate, BiFunction<T, U, R> mapper) {
-        return whenOptional(predicate, (t, u) -> Optional.ofNullable(mapper.apply(t, u)));
-    }
-
-    /**
-     * Same as {@link #whenOptional(Predicate, BiFunction)}. It's named differently to make it easier for use.
-     */
-    public Switch<T, U, R> whenO(Predicate<U> predicate, BiFunction<T, U, Optional<R>> mapper) {
-        return whenOptional(predicate, mapper);
-    }
-
-    public Switch<T, U, R> whenOptional(Predicate<U> predicate, BiFunction<T, U, Optional<R>> mapper) {
         cases.put(predicate, mapper);
         return this;
     }
 
     public Switch<T, U, R> orDefault(BiFunction<T, U, R> mapper) {
-        return defaultOptional((t, u) -> Optional.ofNullable(mapper.apply(t, u)));
-    }
-
-    /**
-     * Same as {@link #defaultOptional(BiFunction)}. It's named differently to make it easier for use.
-     */
-    public Switch<T, U, R> defaultO(BiFunction<T, U, Optional<R>> mapper) {
-        return defaultOptional(mapper);
-    }
-
-    public Switch<T, U, R> defaultOptional(BiFunction<T, U, Optional<R>> mapper) {
         defaultCase = mapper;
         return this;
     }
 
     @Override
-    public Optional<R> apply(T t) {
+    public R apply(T t) {
         final U u = test.apply(t);
         return cases.entrySet().stream().filter(e -> e.getKey().test(u)).findFirst()
             .map(Entry::getValue)
