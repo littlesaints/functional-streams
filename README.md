@@ -135,6 +135,7 @@ Copyright (C) 2018 Varun Anand
 [api-aggregator]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Aggregator.html
 [api-streamsource]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/StreamSource.html
 [api-trial]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/trial/Trial.html
+[api-fntrial]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/trial/FnTrial.html
 [api-if]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/If.html
 [api-switch]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Switch.html
 [api-try]: https://littlesaints.gitlab.io/functional-streams/api/com/littlesaints/protean/functions/streams/Try.html
