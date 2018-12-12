@@ -101,10 +101,20 @@ A function to check whether a number is a power of 2. This is useful to know if 
 [more details and javadoc][api-mathematician-fields]
 
 ### Usage
-Download the latest version from [MVN Repository][latest-release], [Maven Central][maven-central] or depend via Gradle:
+Download the latest version from [MVN Repository][latest-release], [Maven Central][maven-central] or depend via:
 
+Gradle
 ```gradle
 compile 'io.gitlab.littlesaints:functional-streams:1.1.0'
+```
+
+Maven
+```maven
+<dependency>
+    <groupId>io.gitlab.littlesaints</groupId>
+    <artifactId>functional-streams</artifactId>
+    <version>1.1.0</version>
+</dependency>
 ```
 
 Snapshot versions are available in [Sonatype's snapshots repository][snapshots].
