@@ -43,18 +43,22 @@ import lombok.ToString;
  * Usage:
  * {@code
  *     Strategy strategy = Strategy.builder()
- *             .maxTriesWithYield(5)
- *             .maxTriesWithDelay(10)
- *             .triesUntilDelayIncrease(2)
- *             .delayBetweenTriesInMillis(500)
- *             .delayThresholdInMillis(2000)
+ *             .maxTriesWithYield(5) // maximum no. of re-attempts done with a {@link Thread#yield()} between trials.
+ *             .maxTriesWithDelay(10) // maximum no. of re-attempts done with a {@link Thread#sleep(long)} of a configured delay millis.
+ *             .triesUntilDelayIncrease(2) // maximum no. of re-attempts, after which the delay millis doubles. This is to implement a phased back-off.
+ *             .delayBetweenTriesInMillis(500) // the configured delay in millis between re-attempts.
+ *             .delayThresholdInMillis(2000) // the configured delay threshold in millis. The delay between re-attempts will never increase beyond this value.
  *             .build();
  * }
+ *
+ * See {@link Defaults} for default values of the above configurations.
+ *
  * </pre>
  *
  * @author Varun Anand
  * @since 1.0
  * @see Trial
+ * @see Defaults
  */
 @Getter
 @Setter

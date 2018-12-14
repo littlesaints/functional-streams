@@ -38,7 +38,8 @@ import java.util.function.UnaryOperator;
  * Usage:
  * {@code
  *     Trial<Integer> trial = Trial.ofNullable(Strategy.DEFAULT, () -> {
- *         Integer result = 1; // a calculation that can fail, which will then be re-attempted based on the configured strategy
+ *         Integer result = 1; // any calculation that can fail. The method in this example (ofNullable), implies that a non-null return value is a success.
+ *         // a failed trial will be re-attempted based on the configured strategy.
  *         return result;
  *     });
  *

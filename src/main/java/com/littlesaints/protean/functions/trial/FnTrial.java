@@ -40,7 +40,8 @@ import java.util.function.UnaryOperator;
  * Usage:
  * {@code
  *     FnTrial<Integer, Double> trial = FnTrial.ofNullable(Strategy.DEFAULT, i -> {
- *         Double result = i * 2; // a calculation that can fail, which will then be re-attempted based on the configured strategy
+ *         Double result = i * 2; // any calculation that can fail. The method in this example (ofNullable), implies that a non-null return value is a success.
+ *         // a failed trial will be re-attempted based on the configured strategy.
  *         return result;
  *     });
  *
