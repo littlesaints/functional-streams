@@ -38,7 +38,7 @@ import lombok.ToString;
 
 /**
  * <pre>
- * Define parameters for re-attempting a failed operation in a {@link Trial}
+ * Define parameters for re-attempting a failed operation in a {@link Trial}.
  *
  * Usage:
  * {@code
