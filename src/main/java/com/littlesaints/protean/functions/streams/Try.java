@@ -22,7 +22,9 @@ package com.littlesaints.protean.functions.streams;
 
 import com.littlesaints.protean.functions.XFunction;
 
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -38,64 +40,64 @@ import java.util.function.Function;
  * Usage:
  *
  * {@code
- *     IntStream.range(-10, 10).boxed()
- *      .map(i -> {
- *          try (100 / i) {
- *              return "positive";
- *          } catch (Exception e) {
- *              return "negative";
- *          }})
- *      .forEach(System.out::println);
+ *
+ *    Arrays.stream(new String[]{"1", "2", "a", "3"})
+ *        .map(i -> {
+ *            try {
+ *                return Integer.parseInt(i);
+ *            } catch (Exception e) {
+ *                return Integer.MIN_VALUE;
+ *            }
+ *        })
+ *        .forEach(System.out::println);
  * }
  *
  * can be written as:
  *
  * {@code
- *     IntStream.range(-10, 10).boxed()
- *          .map(
- *              Try.<Integer, Integer, String>of(input -> 100 / input)
- *                  .onSuccess(quotient -> "positive")
- *                  .onFailure((input, ex) -> "negative"))
- *          .forEach(System.out::println);
+ *     Arrays.stream(new String[]{"1", "2", "a", "3"})
+ *         .map(
+ *             Try.<String, Integer> evaluate(Integer::parseInt)
+ *                 .onFailure((string, exception) -> Integer.MIN_VALUE))
+ *         .forEach(System.out::println);
  * }
  *
  * Note:
  * - The use of 'finally' construct is also supported.
  * </pre>
  *
- * @author Varun Anand
- * @since 1.0
- *
  * @param <T> The input type in the function.
- * @param <U> The value type evaluated by the try construct.
- * @param <R> The final return type.
- *
+ * @param <R> The return type.
+ * @author Varun Anand
  * @see com.littlesaints.protean.functions.trial.Trial
  * @see If
+ * @since 1.0
  */
-public class Try<T, U, R> implements Function<T, R> {
+public class Try<T, R> implements Function<T, R> {
 
-    private final XFunction<T, U> mapper;
-
-    private Function<U, R> successMapper = u -> null;
+    private final XFunction<T, R> mapper;
 
     private BiFunction<T, Exception, R> failureMapper = (t, e) -> null;
 
-    private Consumer<T> finallyMapper = t -> {};
+    private Consumer<T> finallyOp = t -> {};
 
-    public Try(XFunction <T, U> mapper) {
+    private BiFunction<T, R, R> successOp = (t, r) -> r;
+
+    private Try(XFunction<T, R> mapper) {
         this.mapper = mapper;
     }
 
-    public static <T, U, R> Try<T, U, R> of(XFunction<T, U> mapper) {
-        return new Try <>(mapper);
+    public static <T, R> Try<T, R> evaluate(XFunction<T, R> mapper) {
+        Objects.requireNonNull(mapper);
+        return new Try<>(mapper);
     }
 
     /**
      * @see #wrapWithOptional()
      */
-    public static <T, U, R> Try<T, U, Optional<R>> wrapWithOptional(Try<T, U, R> fx) {
-        return fx.wrapWithOptional();
+    public static <T, R> Try<T, Optional<R>> wrapWithOptional(Try<T, R> tryFn) {
+        Objects.requireNonNull(tryFn);
+        return tryFn.wrapWithOptional();
     }
 
     /**
@@ -105,20 +107,26 @@ public class Try<T, U, R> implements Function<T, R> {
      * This is useful when the application doesn't want to handle {@code null} directly but the code can return {@code null}
      * or there's no code mapped to 'onSuccess' or 'onFailure' construct.
      * </pre>
+     *
      * @return a copy of this 'Try' function.
      */
-    public Try<T, U, Optional<R>> wrapWithOptional() {
-        return Try.<T, U, Optional<R>>of(mapper)
-            .onSuccess(u -> Optional.ofNullable(successMapper.apply(u)))
-            .onFailure((t, x) -> Optional.ofNullable(failureMapper.apply(t, x)))
-            .onFinally(finallyMapper);
+    public Try<T, Optional<R>> wrapWithOptional() {
+        return Try.<T, Optional<R>>evaluate(t -> Optional.ofNullable(mapper.apply(t)))
+                .onSuccess((t, or) -> successOp.apply(t, or.orElse(null)))
+                .onFailure((t, x) -> Optional.ofNullable(failureMapper.apply(t, x)))
+                .onFinally(finallyOp);
     }
+
     /**
-     * @param successMapper to be called when the Try succeeds
+     * @param successOp to be called when the Try succeeds
      * @return this Try instance
      */
-    public Try<T, U, R> onSuccess(Function <U, R> successMapper) {
-        this.successMapper = successMapper;
+    public Try<T, R> onSuccess(BiConsumer<T, R> successOp) {
+        Objects.requireNonNull(successOp);
+        this.successOp = (t, r) -> {
+            successOp.accept(t, r);
+            return r;
+        };
         return this;
     }
 
@@ -126,32 +134,32 @@ public class Try<T, U, R> implements Function<T, R> {
      * @param failureMapper to be called when the Try results in an exception being thrown
      * @return this Try instance
      */
-    public Try<T, U, R> onFailure(BiFunction<T, Exception, R> failureMapper) {
+    public Try<T, R> onFailure(BiFunction<T, Exception, R> failureMapper) {
+        Objects.requireNonNull(failureMapper);
         this.failureMapper = failureMapper;
         return this;
     }
 
     /**
-     * @param finallyMapper to be called when Try completes, irrespective of the outcome
+     * @param finallyOp to be called when Try completes, irrespective of the outcome
      * @return this Try instance
      */
-    public Try<T, U, R> onFinally(Consumer<T> finallyMapper) {
-        this.finallyMapper = finallyMapper;
+    public Try<T, R> onFinally(Consumer<T> finallyOp) {
+        Objects.requireNonNull(this.finallyOp);
+        this.finallyOp = finallyOp;
         return this;
     }
 
     @Override
     public R apply(T t) {
         try {
-            return successMapper.apply(mapper.apply(t));
+            return successOp.apply(t, mapper.apply(t));
         } catch (Exception e) {
             return failureMapper.apply(t, e);
         } catch (Throwable r) {
             return failureMapper.apply(t, new Exception(r));
         } finally {
-            finallyMapper.accept(t);
+            finallyOp.accept(t);
         }
     }
-
 }
-

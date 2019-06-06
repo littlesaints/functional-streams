@@ -1,7 +1,8 @@
 plugins {
     id 'java-library'
-    id 'signing'
+    id 'jacoco'
     id 'maven-publish'
+    id 'signing'
 }
 
 repositories {
@@ -19,8 +20,9 @@ tasks.withType(JavaCompile) {
 }
 
 apply plugin: 'java'
-apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
+apply plugin: 'signing'
+apply plugin: 'maven-publish'
 
 ext {
     SL4J_VERSION = '1.7.25'
@@ -137,13 +139,13 @@ def updatePom() {
 
 jacoco {
     toolVersion = "0.8.2"
-    reportsDir = file("$buildDir/reports/tests/coverage")
+    reportsDir = file("${buildDir}/reports/tests/coverage")
 }
 
 jacocoTestReport {
     reports {
-        xml.enabled false
-        csv.enabled false
+        xml.enabled = false
+        csv.enabled = false
         html.destination file("${buildDir}/reports/tests/coverage")
     }
 }

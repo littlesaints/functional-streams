@@ -48,7 +48,6 @@ public abstract class AbstractTrial<T> {
 
     private final Strategy strategy;
 
-    @Getter
     private final Predicate<T> successfulOpTest;
 
     private final UnaryOperator<T> onTrialsExhaustion;
@@ -65,7 +64,7 @@ public abstract class AbstractTrial<T> {
     @Getter
     private long remainingTriesUntilDelayIncrease;
 
-    protected AbstractTrial(Strategy strategy, Predicate<T> successfulOpTest, UnaryOperator<T> onTrialsExhaustion) {
+    AbstractTrial(Strategy strategy, Predicate<T> successfulOpTest, UnaryOperator<T> onTrialsExhaustion) {
         this.strategy = strategy.toBuilder().build();
         this.successfulOpTest = successfulOpTest;
         this.onTrialsExhaustion = onTrialsExhaustion;

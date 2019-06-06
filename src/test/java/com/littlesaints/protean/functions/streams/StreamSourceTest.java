@@ -20,12 +20,14 @@
 
 package com.littlesaints.protean.functions.streams;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -36,17 +38,23 @@ public class StreamSourceTest {
     public void testStreamClose() {
         final AtomicInteger atomicInteger = new AtomicInteger();
         final Stream<Integer> source = StreamSource.of(atomicInteger::incrementAndGet).get();
-        final If<Integer, Void> iff = If.<Integer, Void>test(n -> n.equals(100)).then(n -> {
+        final int limit = 100;
+        final If<Integer, Void> iff = If.<Integer, Void>test(n -> n.equals(limit)).then(n -> {
             source.close();
             return null;
         });
         source.forEach(iff::apply);
+        Assert.assertEquals(limit, atomicInteger.get());
     }
 
     @Test(timeout = 5000)
     public void testStreamComplete() {
         final AtomicInteger atomicInteger = new AtomicInteger();
-        final Stream<Integer> source = StreamSource.of(atomicInteger::incrementAndGet, () -> atomicInteger.intValue() < 100).get();
-        source.forEach(n -> {});
+        final int limit = 100;
+        final LongAdder count = new LongAdder();
+        final Stream<Integer> source = StreamSource.of(atomicInteger::incrementAndGet, () -> atomicInteger.get() < limit).get();
+        source.forEach(n -> count.increment());
+        Assert.assertEquals(limit, atomicInteger.get());
+        Assert.assertEquals(limit - 1, count.intValue());
     }
 }
