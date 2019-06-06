@@ -21,100 +21,139 @@
 package com.littlesaints.protean.functions.streams;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-import javax.sql.rowset.Predicate;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-@RunWith(Parameterized.class)
 public class TryTest {
 
-    private final String input;
+    private String successInput;
 
-    private final Boolean expected;
+    private Integer successOutcome;
 
-    private static final Try <String, Integer, Optional<Boolean>> TRY = Try.wrapWithOptional(Try.<String, Integer, Boolean>of(Integer::parseInt)
-        .onSuccess(i -> true)
-        .onFailure((i, e) -> e == null)
-        .onFinally(i -> System.out.println("Finally :: ".concat(i))));
+    private String finallyInput;
 
-    private static final Try <String, Integer, Optional<Boolean>> TRY_NO_ON_SUCCESS = Try.wrapWithOptional(Try.<String, Integer, Boolean>of(Integer::parseInt)
-            .onFailure((i, e) -> e == null)
-            .onFinally(i -> System.out.println("Finally :: ".concat(i))));
+    private final BiConsumer<String, Integer> successOp = (i, b) -> {
+        successInput = i;
+        successOutcome = b;
+    };
 
-    private static final Try <String, Integer, Optional<Boolean>> TRY_NO_ON_FAILURE = Try.wrapWithOptional(Try.<String, Integer, Boolean>of(Integer::parseInt)
-            .onSuccess(i -> true)
-            .onFinally(i -> System.out.println("Finally :: ".concat(i))));
+    private BiFunction<String, Exception, Integer> failureOp = (i, e) -> e instanceof NumberFormatException ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
-    private static final Try <String, Integer, Optional<Boolean>> TRY_NO_ON_FINALLY = Try.wrapWithOptional(
-            Try.<String, Integer, Boolean>of(s -> {
-                if (s.startsWith("XX")) {
-                    throw new Error();
-                } else {
-                    return Integer.parseInt(s);
-                }})
-            .onSuccess(i -> true)
-            .onFailure((i, e) -> e == null));
+    private final Consumer<String> finallyOp = i -> finallyInput = i;
 
-    public TryTest(String input, Boolean expected) {
-        this.input = input;
-        this.expected = expected;
-    }
+    private final Try <String, Optional<Integer>> TRY = Try.wrapWithOptional(
+        Try.<String, Integer>evaluate(s -> {
+            if (s == null) {
+                throw new Error();
+            } else {
+                return Integer.parseInt(s);
+            }})
+        .onSuccess(successOp)
+        .onFailure(failureOp)
+        .onFinally(finallyOp));
 
-    @Parameterized.Parameters(name = "{index}: input={0} | expected={1}")
-    public static Collection<Object[]> data() {
-        final List<Object[]> data = new ArrayList<>();
-        IntStream.range(0, 100).boxed().map(Objects::toString).forEach(i -> data.add(new Object[]{i, true}));
-        IntStream.range(0, 100).boxed().map(Objects::toString).map("XX"::concat).forEach(i -> data.add(new Object[]{i, false}));
-        Collections.shuffle(data);
-        return data.stream().map(d -> new Object[]{d[0], d[1]}).collect(Collectors.toList());
-    }
+    private final Try <String, Optional<Integer>> TRY_NO_ON_SUCCESS = Try.wrapWithOptional(Try.<String, Integer>evaluate(Integer::parseInt)
+            .onFailure(failureOp)
+            .onFinally(finallyOp));
 
-    @Test
-    public void test() {
-        Assert.assertEquals(expected,
-            Stream.of(input)
-                .map(TRY)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findAny()
-                .orElse(null));
+    private final Try <String, Optional<Integer>> TRY_NO_ON_FAILURE = Try.wrapWithOptional(Try.<String, Integer>evaluate(Integer::parseInt)
+            .onSuccess(successOp)
+            .onFinally(finallyOp));
+
+    private final Try <String, Optional<Integer>> TRY_NO_ON_FINALLY = Try.wrapWithOptional(
+            Try.<String, Integer>evaluate(Integer::parseInt)
+            .onSuccess(successOp)
+            .onFailure(failureOp));
+
+    @Before
+    public void init() {
+        successInput = finallyInput = null;
+        successOutcome = null;
     }
 
     @Test
-    public void testNoSuccess() {
-        Assert.assertFalse(
-            Stream.of(input)
-                .map(TRY_NO_ON_SUCCESS)
-                .map(o -> o.orElse(false))
-                .findAny()
-                .orElse(null));
+    public void testTrySuccess() {
+        final String input = "1";
+        final Integer expected = 1;
+
+        Integer actual = Optional.of(input).flatMap(TRY).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertEquals(input, successInput);
+        Assert.assertEquals(expected, successOutcome);
+        Assert.assertEquals(input, finallyInput);
+
+        init();
+        actual = Optional.of(input).flatMap(TRY_NO_ON_SUCCESS).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertNull(successInput);
+        Assert.assertNull(successOutcome);
+        Assert.assertEquals(input, finallyInput);
+
+        init();
+        actual = Optional.of(input).flatMap(TRY_NO_ON_FAILURE).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertEquals(input, successInput);
+        Assert.assertEquals(expected, successOutcome);
+        Assert.assertEquals(input, finallyInput);
+
+        init();
+        actual = Optional.of(input).flatMap(TRY_NO_ON_FINALLY).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertEquals(input, successInput);
+        Assert.assertEquals(expected, successOutcome);
+        Assert.assertNull(finallyInput);
+
     }
 
     @Test
-    public void testNoFailure() {
-        Assert.assertTrue(
-            Stream.of(input)
-                .map(TRY_NO_ON_FAILURE)
-                .map(o -> o.orElse(true))
-                .findAny()
-                .orElse(null));
+    public void testTryFailureExpected() {
+        final String input = "X";
+        final Integer expected = Integer.MIN_VALUE;
+
+        Integer actual = Optional.of(input).flatMap(TRY).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertNull(successInput);
+        Assert.assertNull(successOutcome);
+        Assert.assertEquals(input, finallyInput);
+
+        init();
+        actual = Optional.of(input).flatMap(TRY_NO_ON_SUCCESS).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertNull(successInput);
+        Assert.assertNull(successOutcome);
+        Assert.assertEquals(input, finallyInput);
+
+        init();
+        actual = Optional.of(input).flatMap(TRY_NO_ON_FAILURE).orElse(null);
+        Assert.assertNull(actual);
+        Assert.assertNull(successInput);
+        Assert.assertNull(successOutcome);
+        Assert.assertEquals(input, finallyInput);
+
+        init();
+        actual = Optional.of(input).flatMap(TRY_NO_ON_FINALLY).get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertNull(successInput);
+        Assert.assertNull(successOutcome);
+        Assert.assertNull(finallyInput);
     }
 
     @Test
-    public void testNoFinally() {
-        Assert.assertEquals(expected,
-            Stream.of(input)
-                .map(TRY_NO_ON_FINALLY)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findAny()
-                .orElse(null));
+    public void testTryFailureUnExpected() {
+        final String input = null;
+        final Integer expected = Integer.MAX_VALUE;
+        final Integer actual = Stream.of(input).map(TRY).findFirst().get().get();
+        Assert.assertEquals(expected, actual);
+        Assert.assertNull(successInput);
+        Assert.assertNull(successOutcome);
+        Assert.assertEquals(input, finallyInput);
     }
 
 }

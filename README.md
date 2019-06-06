@@ -79,7 +79,7 @@ Functional replacement of an 'switch-case' construct. Integrates with Java Strea
 ### Functional replacement for exception handling
 
 #### - Try
-Functional way of exceptional handling in Java Streams. It supports onSuccess and onFailure actions on any
+Functional way of exceptional handling in Java Streams. It's a Function<T, R> and supports onSuccess, onFailure and onFinally actions on any
 operation that can cause an exception. 
 
 It's a good fit for handling external api calls.
@@ -105,7 +105,7 @@ Download the latest version from [MVN Repository][latest-release], [Maven Centra
 
 Gradle
 ```gradle
-compile 'io.gitlab.littlesaints:functional-streams:1.1.0'
+compile 'io.gitlab.littlesaints:functional-streams:1.2.0'
 ```
 
 Maven
@@ -113,7 +113,7 @@ Maven
 <dependency>
     <groupId>io.gitlab.littlesaints</groupId>
     <artifactId>functional-streams</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 

@@ -21,6 +21,7 @@
 package com.littlesaints.protean.functions.streams;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,6 +102,7 @@ import java.util.stream.Stream;
  * @author Varun Anand
  * @since 1.0
  */
+@Slf4j
 public class ForkJoin<T, Q> implements Consumer<T>, AutoCloseable {
 
     @Getter
@@ -157,7 +159,7 @@ public class ForkJoin<T, Q> implements Consumer<T>, AutoCloseable {
                 try {
                     return q.take();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.warn("Error during thread sleep.", e);
                 }
             }
         };
@@ -167,7 +169,7 @@ public class ForkJoin<T, Q> implements Consumer<T>, AutoCloseable {
                     q.put(t);
                     break;
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.warn("Error during thread sleep.", e);
                 }
             }
         };
