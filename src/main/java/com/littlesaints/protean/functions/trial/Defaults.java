@@ -37,4 +37,6 @@ public interface Defaults {
     int DELAY_BETWEEN_TRIES_IN_MILLIS = 1000;
 
     int TRIES_WITH_YIELD = 0;
+
+    int DELAY_INCREASE_MULTIPLIER = 2;
 }

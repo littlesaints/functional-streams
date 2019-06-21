@@ -20,21 +20,17 @@
 
 package com.littlesaints.protean.functions.trial;
 
-import static com.littlesaints.protean.functions.trial.Defaults.DELAY_BETWEEN_TRIES_IN_MILLIS;
-import static com.littlesaints.protean.functions.trial.Defaults.DELAY_THRESHOLD_IN_MILLIS;
-import static com.littlesaints.protean.functions.trial.Defaults.TRIES_UNTIL_DELAY_INCREASE;
-import static com.littlesaints.protean.functions.trial.Defaults.TRIES_WITH_DELAY;
-import static com.littlesaints.protean.functions.trial.Defaults.TRIES_WITH_YIELD;
-
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
+
+import java.util.Optional;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
+
+import static com.littlesaints.protean.functions.trial.Defaults.*;
 
 /**
  * <pre>
@@ -56,19 +52,23 @@ import lombok.ToString;
  * </pre>
  *
  * @author Varun Anand
- * @since 1.0
  * @see Trial
  * @see Defaults
+ * @since 1.0
  */
 @Getter
-@Setter
 @ToString
-@NoArgsConstructor
 @Builder(toBuilder = true)
 @AllArgsConstructor
 public class Strategy {
 
-    public static Strategy DEFAULT = Strategy.builder().build();
+    public static Supplier<Strategy> DEFAULT = () -> Strategy.builder().build();
+
+    public static IntFunction<Strategy> CONSTANT_DELAY_UNBOUNDED_TRIES = delayInMillis -> Strategy.builder()
+            .delayBetweenTriesInMillis(delayInMillis)
+            .maxTriesWithDelay(Constants.UNBOUNDED_TRIES)
+            .delayIncreaseMultiplier(1)
+            .build();
 
     /**
      * The maximum number of times, consecutive tries will have a {@link Thread#yield()} operation in between.
@@ -99,5 +99,35 @@ public class Strategy {
      */
     @Default
     private int triesUntilDelayIncrease = TRIES_UNTIL_DELAY_INCREASE;
+
+    /**
+     * The multiplier by which the delay increases, once {@link #triesUntilDelayIncrease} has exhausted.
+     */
+    @Default
+    private int delayIncreaseMultiplier = DELAY_INCREASE_MULTIPLIER;
+
+    public void validate() {
+        if (maxTriesWithYield < 0) {
+            throw new IllegalArgumentException("maxTriesWithYield must be >= 0 !!");
+        }
+        if (maxTriesWithDelay < 1 && maxTriesWithDelay != Constants.UNBOUNDED_TRIES) {
+            throw new IllegalArgumentException("maxTriesWithDelay must be >= 1 !!");
+        }
+        if (delayBetweenTriesInMillis < 0) {
+            throw new IllegalArgumentException("delayBetweenTriesInMillis must be >= 0 !!");
+        }
+        if (delayThresholdInMillis < 0) {
+            throw new IllegalArgumentException("delayThresholdInMillis must be >= 0 !!");
+        }
+        if (delayBetweenTriesInMillis > delayThresholdInMillis) {
+            throw new IllegalArgumentException("delayBetweenTriesInMillis must be <= delayThresholdInMillis !!");
+        }
+        if (triesUntilDelayIncrease < 1 && triesUntilDelayIncrease != Constants.NO_DELAY_INCREASE) {
+            throw new IllegalArgumentException("triesUntilDelayIncrease must be >= 1 !!");
+        }
+        if (delayIncreaseMultiplier < 1) {
+            throw new IllegalArgumentException("delayIncreaseMultiplier must be >= 1 !!");
+        }
+    }
 
 }

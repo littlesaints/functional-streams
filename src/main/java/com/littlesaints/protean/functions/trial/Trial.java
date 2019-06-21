@@ -20,7 +20,7 @@
 
 package com.littlesaints.protean.functions.trial;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -64,7 +64,7 @@ import java.util.function.UnaryOperator;
  * @see FnTrial
  * @see com.littlesaints.protean.functions.streams.Try
  */
-@Slf4j
+@Log4j2
 public class Trial<T> extends AbstractTrial<T> implements Supplier<T> {
 
     private final Supplier<T> supplier;

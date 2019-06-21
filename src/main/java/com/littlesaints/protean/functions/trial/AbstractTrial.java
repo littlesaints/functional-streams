@@ -21,12 +21,13 @@
 package com.littlesaints.protean.functions.trial;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import static com.littlesaints.protean.functions.trial.Constants.NO_DELAY_INCREASE;
 import static com.littlesaints.protean.functions.trial.Constants.UNBOUNDED_TRIES;
 
 /**
@@ -43,8 +44,27 @@ import static com.littlesaints.protean.functions.trial.Constants.UNBOUNDED_TRIES
  * @see Strategy
  * @see com.littlesaints.protean.functions.streams.Try
  */
-@Slf4j
+@Log4j2
 public abstract class AbstractTrial<T> {
+
+    @Getter
+    public static class State {
+
+        private long currentDelayBetweenTriesInMillis;
+
+        private int attemptedTriesWithDelay;
+
+        private int attemptedTriesWithYield;
+
+        private long remainingTriesUntilDelayIncrease;
+
+        private void reset(Strategy strategy) {
+            attemptedTriesWithYield = 0;
+            attemptedTriesWithDelay = 0;
+            currentDelayBetweenTriesInMillis = strategy.getDelayBetweenTriesInMillis();
+            remainingTriesUntilDelayIncrease = strategy.getTriesUntilDelayIncrease();
+        }
+    }
 
     private final Strategy strategy;
 
@@ -53,25 +73,23 @@ public abstract class AbstractTrial<T> {
     private final UnaryOperator<T> onTrialsExhaustion;
 
     @Getter
-    private long currentDelayBetweenTriesInMillis;
+    private final State state = new State();
 
-    @Getter
-    private int attemptedTriesWithDelay;
+    private final Predicate<?> trialValidator;
 
-    @Getter
-    private int attemptedTriesWithYield;
-
-    @Getter
-    private long remainingTriesUntilDelayIncrease;
+    private final Runnable delayAdjuster;
 
     AbstractTrial(Strategy strategy, Predicate<T> successfulOpTest, UnaryOperator<T> onTrialsExhaustion) {
+        strategy.validate();
         this.strategy = strategy.toBuilder().build();
         this.successfulOpTest = successfulOpTest;
         this.onTrialsExhaustion = onTrialsExhaustion;
+        trialValidator = getTrialValidator(this.strategy);
+        delayAdjuster = getDelayAdjuster(this.strategy);
     }
 
     protected T get(Supplier<T> op) {
-        reset();
+        state.reset(strategy);
         T result;
         do {
             if (successfulOpTest.test(result = op.get())){
@@ -81,54 +99,94 @@ public abstract class AbstractTrial<T> {
         return onTrialsExhaustion.apply(result);
     }
 
-    private void reset() {
-        attemptedTriesWithYield = 0;
-        attemptedTriesWithDelay = 0;
-        currentDelayBetweenTriesInMillis = strategy.getDelayBetweenTriesInMillis();
-        remainingTriesUntilDelayIncrease = strategy.getTriesUntilDelayIncrease();
-    }
-
     private boolean test() {
-
-        if (attemptedTriesWithYield < strategy.getMaxTriesWithYield()) {
-            Thread.yield();
-            ++attemptedTriesWithYield;
-            return true;
-        }
-
-        boolean retry = false;
-        if (strategy.getMaxTriesWithDelay() == UNBOUNDED_TRIES) {
-            //If unbounded retries, then don't increment attemptedTriesWithDelay or it'll eventually overflow.
-            retry = true;
-        }
-        else if (attemptedTriesWithDelay < strategy.getMaxTriesWithDelay()) {
-            ++attemptedTriesWithDelay;
-            retry = true;
-        }
-
-        if (retry) {
-            //can't do better atm.
-            try {
-                Thread.sleep(currentDelayBetweenTriesInMillis);
-            } catch (InterruptedException e) {
-                log.warn("Error during Thread.sleep.", e);
-            }
-
-            // iff delayThresholdInMillis isn't reached.
-            if (currentDelayBetweenTriesInMillis < strategy.getDelayThresholdInMillis()) {
-                if (remainingTriesUntilDelayIncrease > 0) {
-                    --remainingTriesUntilDelayIncrease;
-                    if (remainingTriesUntilDelayIncrease == 0) {
-                        // reset
-                        remainingTriesUntilDelayIncrease = strategy.getTriesUntilDelayIncrease();
-                        // double the wait time bounded by the threshold
-                        currentDelayBetweenTriesInMillis = Math.min(currentDelayBetweenTriesInMillis * 2, strategy.getDelayThresholdInMillis());
-                    }
+        if (trialValidator.test(null)) {
+            if (state.currentDelayBetweenTriesInMillis > 0) {
+                //can't do better atm.
+                try {
+                    Thread.sleep(state.currentDelayBetweenTriesInMillis);
+                } catch (InterruptedException e) {
+                    log.warn("Error during Thread.sleep.", e);
                 }
             }
+            delayAdjuster.run();
+            return true;
         }
+        return false;
+    }
 
-        return retry;
+    private Predicate<?> getTrialValidator(Strategy strategy) {
+
+        final int strategyMaxTriesWithDelay = strategy.getMaxTriesWithDelay();
+
+        final Predicate<?> trialValidator;
+        if (strategy.getMaxTriesWithYield() > 0) {
+            final int strategyMaxTriesWithYield = this.strategy.getMaxTriesWithYield();
+            if (strategyMaxTriesWithDelay == UNBOUNDED_TRIES) {
+                trialValidator = x -> {
+                    if (state.attemptedTriesWithYield < strategyMaxTriesWithYield) {
+                        Thread.yield();
+                        ++state.attemptedTriesWithYield;
+                    }
+                    return true;
+                };
+            } else {
+                trialValidator = x -> {
+                    if (state.attemptedTriesWithYield < strategyMaxTriesWithYield) {
+                        Thread.yield();
+                        ++state.attemptedTriesWithYield;
+                        return true;
+                    } else if (state.attemptedTriesWithDelay < strategyMaxTriesWithDelay) {
+                        ++state.attemptedTriesWithDelay;
+                        return true;
+                    }
+                    return false;
+                };
+            }
+        } else {
+            if (strategyMaxTriesWithDelay == UNBOUNDED_TRIES) {
+                trialValidator = x -> true;
+            } else {
+                trialValidator = x -> {
+                    if (state.attemptedTriesWithDelay < strategyMaxTriesWithDelay) {
+                        ++state.attemptedTriesWithDelay;
+                        return true;
+                    }
+                    return false;
+                };
+            }
+        }
+        return trialValidator;
+    }
+
+    private Runnable getDelayAdjuster(Strategy strategy) {
+
+        final long strategyDelayThresholdInMillis = strategy.getDelayThresholdInMillis();
+        final int strategyTriesUntilDelayIncrease = strategy.getTriesUntilDelayIncrease();
+        final int strategyDelayIncreaseMultiplier = strategy.getDelayIncreaseMultiplier();
+
+        final Runnable delayAdjuster;
+        if (strategyTriesUntilDelayIncrease <= NO_DELAY_INCREASE
+                || strategy.getDelayBetweenTriesInMillis() == strategyDelayThresholdInMillis
+                || strategyDelayIncreaseMultiplier == 1) {
+            delayAdjuster = () -> {};
+        } else {
+            delayAdjuster = () -> {
+                // iff delayThresholdInMillis isn't reached.
+                if (state.currentDelayBetweenTriesInMillis < strategyDelayThresholdInMillis) {
+                    --state.remainingTriesUntilDelayIncrease;
+                    if (state.remainingTriesUntilDelayIncrease == 0) {
+                        // reset
+                        state.remainingTriesUntilDelayIncrease = strategyTriesUntilDelayIncrease;
+                        // double the wait time bounded by the threshold
+                        state.currentDelayBetweenTriesInMillis =
+                                Math.min(state.currentDelayBetweenTriesInMillis * strategyDelayIncreaseMultiplier,
+                                        strategyDelayThresholdInMillis);
+                    }
+                }
+            };
+        }
+        return delayAdjuster;
     }
 
 }

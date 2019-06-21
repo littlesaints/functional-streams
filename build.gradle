@@ -28,12 +28,13 @@ ext {
     SL4J_VERSION = '1.7.25'
     JUNIT_VERSION = '4.12'
     LOMBOK_VERSION = '1.18.2'
+    LOG4J_VERSION = '2.11.2'
 }
 
 dependencies {
-    compile "org.slf4j:slf4j-api:${SL4J_VERSION}"
+    compile "org.apache.logging.log4j:log4j-api:${LOG4J_VERSION}"
+    testCompile "org.apache.logging.log4j:log4j-core:${LOG4J_VERSION}"
     compileOnly "org.projectlombok:lombok:${LOMBOK_VERSION}"
-    testCompile "org.slf4j:slf4j-simple:${SL4J_VERSION}"
     testCompile "junit:junit:${JUNIT_VERSION}"
 }
 

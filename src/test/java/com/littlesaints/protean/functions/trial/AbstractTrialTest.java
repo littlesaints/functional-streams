@@ -32,10 +32,7 @@ public abstract class AbstractTrialTest {
     @Test
     public void test_exit_after_n_retries_for_unbounded_counter() {
         final int simulatedTries = 20;
-        final Strategy strategy = Strategy.builder()
-                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
-                .build();
+        final Strategy strategy = Strategy.CONSTANT_DELAY_UNBOUNDED_TRIES.apply(TEST_DEFAULT_DELAY_IN_MILLIS);
         testRetries(simulatedTries, strategy);
     }
 
@@ -57,14 +54,64 @@ public abstract class AbstractTrialTest {
     }
 
     @Test
+    public void test_exit_after_n_delay_retries() {
+        final int simulatedTries = 5;
+        final Strategy strategy = Strategy.builder()
+                .maxTriesWithYield(2)
+                .maxTriesWithDelay(5)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
+
+        testRetries(simulatedTries, strategy);
+    }
+
+    @Test
+    public void test_exit_after_n_no_wait_retries() {
+        final int simulatedTries = 5;
+        final Strategy strategy = Strategy.builder()
+                .maxTriesWithYield(2)
+                .maxTriesWithDelay(5)
+                .delayBetweenTriesInMillis(0)
+                .delayThresholdInMillis(0).build();
+
+        testRetries(simulatedTries, strategy);
+    }
+
+    @Test
+    public void test_exit_after_n_delay_retries_unbounded() {
+        final int simulatedTries = 5;
+        final Strategy strategy = Strategy.builder()
+                .maxTriesWithYield(2)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
+
+        testRetries(simulatedTries, strategy);
+    }
+
+    @Test
     public void test_exit_after_n_retries_setters() {
         final int simulatedTries = 5;
-        final Strategy strategy = new Strategy();
-        strategy.setMaxTriesWithYield(5);
-        strategy.setMaxTriesWithDelay(5);
-        strategy.setTriesUntilDelayIncrease(5);
-        strategy.setDelayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS);
-        strategy.setDelayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS);
+        final Strategy strategy = Strategy.builder()
+                .maxTriesWithYield(5)
+                .maxTriesWithDelay(5)
+                .triesUntilDelayIncrease(5)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
+
+        Assert.assertNotNull(strategy.toString());
+        Assert.assertNotNull(Strategy.builder().toString());
+        testRetries(simulatedTries, strategy);
+    }
+
+    @Test
+    public void test_exit_after_n_retries_no_increase() {
+        final int simulatedTries = 5;
+        final Strategy strategy = Strategy.builder()
+                .maxTriesWithYield(5)
+                .maxTriesWithDelay(5)
+                .triesUntilDelayIncrease(Constants.NO_DELAY_INCREASE)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS).build();
 
         Assert.assertNotNull(strategy.toString());
         Assert.assertNotNull(Strategy.builder().toString());
@@ -81,6 +128,19 @@ public abstract class AbstractTrialTest {
                 .build();
 
         testRetries(maxTries, strategy);
+    }
+
+    @Test
+    public void test_exit_after_max_retries_yield() {
+        final int maxTries = 10;
+        final Strategy strategy = Strategy.builder()
+                .maxTriesWithYield(2)
+                .maxTriesWithDelay(5)
+                .delayBetweenTriesInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .delayThresholdInMillis(TEST_DEFAULT_DELAY_IN_MILLIS)
+                .build();
+
+        testTrialFailure(maxTries, strategy, 1);
     }
 
     @Test
@@ -141,6 +201,8 @@ public abstract class AbstractTrialTest {
     protected abstract void testRetries(final int simulatedInvocations, Strategy strategy, int runs);
 
     protected abstract void testRetryDelay(int simulatedInvocations, long expectedDelayInMillis, Strategy strategy, int runs);
+
+    protected abstract void testTrialFailure(final int simulatedInvocations, Strategy strategy, int runs);
 
     private void testRetryDelay(int simulatedTries, long expectedDelayInMillis, Strategy strategy) {
         testRetryDelay(simulatedTries, expectedDelayInMillis, strategy, 1);

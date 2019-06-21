@@ -20,9 +20,9 @@
 
 package com.littlesaints.protean.functions.maths;
 
-import java.util.function.IntPredicate;
-
 import com.littlesaints.protean.functions.ToIntIntBiFunction;
+
+import java.util.function.IntPredicate;
 
 /**
  * Factory of functions performing Math operations.

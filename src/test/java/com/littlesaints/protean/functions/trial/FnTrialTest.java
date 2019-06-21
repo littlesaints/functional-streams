@@ -43,19 +43,21 @@ public class FnTrialTest extends AbstractTrialTest {
         final AtomicInteger counter = new AtomicInteger(0);
         FnTrial<AtomicInteger, Optional<Integer>> trial = FnTrial.ofOptional(strategy, c -> c.incrementAndGet() == 3 ? -1 : null);
         assertEquals(Integer.valueOf(-1), trial.apply(counter).orElse(-2));
-        assertEquals(3, trial.getRemainingTriesUntilDelayIncrease());
+        assertEquals(3, trial.getState().getRemainingTriesUntilDelayIncrease());
     }
 
+    @Override
     protected void testRetryDelay(int simulatedInvocations, long expectedDelayInMillis, Strategy strategy, int runs) {
         final AtomicInteger counter = new AtomicInteger(0);
         FnTrial<AtomicInteger, Integer> trial = FnTrial.of(strategy, AtomicInteger::incrementAndGet, i -> i == simulatedInvocations, r -> r);
         for (int i = 0; i < runs; i++) {
             counter.set(0);
             trial.apply(counter);
-            assertEquals(expectedDelayInMillis, trial.getCurrentDelayBetweenTriesInMillis());
+            assertEquals(expectedDelayInMillis, trial.getState().getCurrentDelayBetweenTriesInMillis());
         }
     }
 
+    @Override
     protected void testRetries(final int simulatedInvocations, Strategy strategy, int runs) {
         final AtomicInteger counter = new AtomicInteger(0);
         FnTrial<AtomicInteger, Integer> trial = FnTrial.of(strategy, AtomicInteger::incrementAndGet, i -> i == simulatedInvocations, r -> Integer.MIN_VALUE);
@@ -65,9 +67,10 @@ public class FnTrialTest extends AbstractTrialTest {
             counter.set(0);
             result = trial.apply(counter);
 
-            long maxAttemptedTries = trial.getAttemptedTriesWithYield() + trial.getAttemptedTriesWithDelay();
+            long maxAttemptedTries = trial.getState().getAttemptedTriesWithYield() + trial.getState().getAttemptedTriesWithDelay();
             if (strategy.getMaxTriesWithDelay() == Constants.UNBOUNDED_TRIES) {
-                assertEquals(maxAttemptedTries, 0);
+                int expectedTries = simulatedInvocations - 1 <= strategy.getMaxTriesWithYield() ? simulatedInvocations : strategy.getMaxTriesWithYield();
+                assertEquals(expectedTries, maxAttemptedTries);
             } else {
                 //Unbounded attempts cause counter to NOT increment, to avoid overflow.
                 assertEquals(simulatedInvocations, maxAttemptedTries + 1);
@@ -75,6 +78,23 @@ public class FnTrialTest extends AbstractTrialTest {
             }
             assertEquals(simulatedInvocations, counter.get());
             assertEquals(result.intValue(), counter.get());
+        }
+    }
+
+    @Override
+    protected void testTrialFailure(final int simulatedInvocations, Strategy strategy, int runs) {
+        final AtomicInteger counter = new AtomicInteger(0);
+        FnTrial<AtomicInteger, Integer> trial = FnTrial.of(strategy, AtomicInteger::incrementAndGet, i -> i == simulatedInvocations, r -> Integer.MIN_VALUE);
+
+        Integer result;
+        for (int i = 0; i < runs; i++) {
+            counter.set(0);
+            result = trial.apply(counter);
+
+            long maxAttemptedTries = trial.getState().getAttemptedTriesWithYield() + trial.getState().getAttemptedTriesWithDelay();
+            assertEquals(strategy.getMaxTriesWithYield() + strategy.getMaxTriesWithDelay(), maxAttemptedTries);
+            assertEquals(counter.get(), maxAttemptedTries + 1);
+            assertEquals(result.intValue(), Integer.MIN_VALUE);
         }
     }
 

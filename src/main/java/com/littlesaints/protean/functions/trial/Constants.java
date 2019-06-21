@@ -28,4 +28,6 @@ public interface Constants {
 
     int UNBOUNDED_TRIES = -1;
 
+    int NO_DELAY_INCREASE = -1;
+
 }

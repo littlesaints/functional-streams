@@ -1,0 +1,24 @@
+<Configuration status="warn">
+    <Appenders>
+        <RollingFile name="fileLogger" fileName="${env:basePath:-build}/logs/application.log"
+                     filePattern="${env:basePath:-build}/logs/application-%d{yyyyMMdd-HHmmss}.log">
+            <PatternLayout>
+                <pattern>{"time": "%d{ISO8601_OFFSET_DATE_TIME_HHMM}", "service": "${sys:app_name:-unknown}-${sys:app_instance:-na}", "logger": "%c{1.}.%M", "level": "%level", "thread": "%t", "message": "%m"}%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB" />
+            </Policies>
+        </RollingFile>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>{"time": "%d{ISO8601_OFFSET_DATE_TIME_HHMM}", "service": "${sys:app_name:-unknown}-${sys:app_instance:-na}", "logger": "%c{1.}.%M", "level": "%level", "thread": "%t", "message": "%m"}%n</pattern>
+            </PatternLayout>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="debug" additivity="false">
+            <appender-ref ref="fileLogger"/>
+            <appender-ref ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>
