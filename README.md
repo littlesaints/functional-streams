@@ -105,7 +105,7 @@ Download the latest version from [MVN Repository][latest-release], [Maven Centra
 
 Gradle
 ```gradle
-compile 'io.gitlab.littlesaints:functional-streams:1.2.1'
+compile 'io.gitlab.littlesaints:functional-streams:1.2.2'
 ```
 
 Maven
@@ -113,7 +113,7 @@ Maven
 <dependency>
     <groupId>io.gitlab.littlesaints</groupId>
     <artifactId>functional-streams</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
