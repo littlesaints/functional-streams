@@ -190,7 +190,7 @@ public class ForkJoin<T, Q> implements Consumer<T>, AutoCloseable {
      */
     public ForkJoin<T, Q> fork(Predicate <T> predicate, Consumer <Stream <T>> streamProcessor) {
         final Q messageExchange = exchangeProvider.get();
-        final Stream<T> stream = StreamSource.of(exchangeReaderProvider.apply(messageExchange)).get();
+        final Stream<T> stream = StreamSource.<T>builder().provider(exchangeReaderProvider.apply(messageExchange)).build().get();
         streams.add(stream);
         predicates.put(predicate, exchangeWriterProvider.apply(messageExchange));
         forks.add(executor.submit(() -> streamProcessor.accept(stream)));

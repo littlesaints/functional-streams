@@ -20,7 +20,11 @@
 
 package com.littlesaints.protean.functions.streams;
 
+import lombok.Builder;
+import lombok.NonNull;
+
 import java.util.Spliterator;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -35,40 +39,46 @@ import java.util.stream.StreamSupport;
  * It turns the push based approach of retrieving inputs to a Streams like pull based approach.
  * This means the application can wire the logic to pull inputs from a Stream but they'll be pulled only upon execution of the terminal operation of the Java Stream.
  *
- * Moreover, the application can stop the stream by invoking {@link Stream#close()} unlike for streams created by {@link Stream#generate(Supplier)}.
+ * Moreover, the application can stop the stream in the following ways:
+ *
+ * 1. providing a {@link Predicate} {@link #doWhile}. This will be checked before every call to {@link #provider}, to get the next element for the stream.
+ * 2. invoking {@link Stream#close()}. This feature is not available in streams created by {@link Stream#generate(Supplier)}.
  * </pre>
  *
  * @author Varun Anand
  * @since 1.0
  */
-public class StreamSource<T> implements Supplier<Stream<T>> {
+@Builder
+public class StreamSource<T> implements Supplier<Stream<T>>, AutoCloseable {
 
-    private final Supplier<T> reader;
+    @NonNull
+    private final Supplier<T> provider;
 
-    private final Supplier<Boolean> doContinue;
+    @Builder.Default
+    private final Supplier<Boolean> doWhile = () -> Boolean.TRUE;
 
-    private class _Spliterator implements Spliterator<T>, AutoCloseable {
+    @Builder.Default
+    private final int parallelism = ForkJoinPool.getCommonPoolParallelism();
 
-        private final Predicate<Consumer<? super T>> advanceAction;
+    private final AtomicBoolean isClosing = new AtomicBoolean(false);
 
-        private final AtomicBoolean isClosing = new AtomicBoolean(false);
+    @Builder.Default
+    private final int characteristics = 0;
 
-        private _Spliterator(Supplier<T> reader, Supplier<Boolean> doContinue) {
-            advanceAction = action -> {
-                T val = reader.get();
-                if (doContinue.get()) {
-                    action.accept(val);
-                    return !isClosing.get();
-                }
-                return false;
-            };
-        }
+    private class _Spliterator implements Spliterator<T> {
 
-        private _Spliterator(Supplier<T> reader) {
-            advanceAction = action -> {
-                action.accept(reader.get());
+        private final Predicate<Consumer<? super T>> advanceAction = action -> {
+            if (doWhile.get()) {
+                action.accept(provider.get());
                 return !isClosing.get();
-            };
+            }
+            return false;
+        };
+
+        private int estimatedSize;
+
+        private _Spliterator(int estimatedSize) {
+            this.estimatedSize = estimatedSize;
         }
 
         public boolean tryAdvance(Consumer<? super T> action) {
@@ -77,46 +87,28 @@ public class StreamSource<T> implements Supplier<Stream<T>> {
 
         @Override
         public Spliterator<T> trySplit() {
-            return null;
+            return new _Spliterator(--estimatedSize);
         }
 
         @Override
         public long estimateSize() {
-            return 0;
+            return estimatedSize;
         }
 
         @Override
         public int characteristics() {
-            return 0;
-        }
-
-        @Override
-        public void close() {
-            isClosing.set(true);
+            return characteristics;
         }
     }
 
-    public static <T> StreamSource<T> of(Supplier<T> reader) {
-        return new StreamSource<>(reader, null);
-    }
-
-    public static <T> StreamSource<T> of(Supplier<T> reader, Supplier<Boolean> doContinue) {
-        return new StreamSource<>(reader, doContinue);
-    }
-
-    private StreamSource(Supplier<T> reader, Supplier<Boolean> doContinue) {
-        this.reader = reader;
-        this.doContinue = doContinue;
+    @Override
+    public void close() {
+        isClosing.set(true);
     }
 
     public Stream<T> get() {
-        final _Spliterator spliterator;
-        if (doContinue == null) {
-            spliterator = new _Spliterator(reader);
-        } else {
-            spliterator = new _Spliterator(reader, doContinue);
-        }
-        return StreamSupport.stream(spliterator, false).onClose(spliterator::close);
+        final _Spliterator spliterator = new _Spliterator(parallelism);
+        return StreamSupport.stream(spliterator, false).onClose(this::close);
     }
 
 }

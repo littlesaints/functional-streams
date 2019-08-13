@@ -23,6 +23,7 @@ package com.littlesaints.protean.functions.streams;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
@@ -32,7 +33,9 @@ public class StreamSourceTest {
     @Test(timeout = 5000)
     public void testStreamClose() {
         final AtomicInteger atomicInteger = new AtomicInteger();
-        final Stream<Integer> source = StreamSource.of(atomicInteger::incrementAndGet).get();
+        final Stream<Integer> source = StreamSource.<Integer>builder()
+                .provider(atomicInteger::incrementAndGet)
+                .build().get();
         final int limit = 100;
         final If<Integer, Void> iff = If.<Integer, Void>test(n -> n.equals(limit)).then(n -> {
             source.close();
@@ -47,9 +50,59 @@ public class StreamSourceTest {
         final AtomicInteger atomicInteger = new AtomicInteger();
         final int limit = 100;
         final LongAdder count = new LongAdder();
-        final Stream<Integer> source = StreamSource.of(atomicInteger::incrementAndGet, () -> atomicInteger.get() < limit).get();
+        final Stream<Integer> source = StreamSource.<Integer>builder()
+                .provider(atomicInteger::incrementAndGet)
+                .doWhile(() -> atomicInteger.get() < limit)
+                .build().get();
         source.forEach(n -> count.increment());
         Assert.assertEquals(limit, atomicInteger.get());
-        Assert.assertEquals(limit - 1, count.intValue());
+        Assert.assertEquals(limit, count.intValue());
+    }
+
+    @Test(timeout = 5000)
+    public void testParallelStreamComplete() {
+        final AtomicInteger atomicInteger = new AtomicInteger();
+        final int limit = 100;
+        final LongAdder count = new LongAdder();
+        final StreamSource.StreamSourceBuilder<Integer> builder = StreamSource.<Integer>builder()
+                .provider(atomicInteger::incrementAndGet)
+                .doWhile(() -> atomicInteger.get() < limit)
+                .parallelism(2);
+        Assert.assertNotNull(builder.toString());
+        final Stream<Integer> source = builder.build().get().parallel();
+        source.forEach(n -> count.increment());
+        Assert.assertEquals(limit, atomicInteger.get());
+        Assert.assertEquals(limit, count.intValue());
+    }
+
+    @Test(timeout = 5000)
+    public void testParallelCharacteristicsStreamComplete() {
+        final AtomicInteger atomicInteger = new AtomicInteger();
+        final int limit = 100;
+        final LongAdder count = new LongAdder();
+        final Stream<Integer> source = StreamSource.<Integer>builder()
+                .provider(atomicInteger::incrementAndGet)
+                .doWhile(() -> atomicInteger.get() < limit)
+                .characteristics(Spliterator.DISTINCT)
+                .parallelism(2)
+                .build().get().parallel();
+        source.forEach(n -> count.increment());
+        Assert.assertEquals(limit, atomicInteger.get());
+        Assert.assertEquals(limit, count.intValue());
+    }
+
+    @Test(timeout = 5000)
+    public void testCharacteristicsStreamComplete() {
+        final AtomicInteger atomicInteger = new AtomicInteger();
+        final int limit = 100;
+        final LongAdder count = new LongAdder();
+        final Stream<Integer> source = StreamSource.<Integer>builder()
+                .provider(atomicInteger::incrementAndGet)
+                .doWhile(() -> atomicInteger.get() < limit)
+                .characteristics(Spliterator.DISTINCT)
+                .build().get().parallel();
+        source.forEach(n -> count.increment());
+        Assert.assertEquals(limit, atomicInteger.get());
+        Assert.assertEquals(limit, count.intValue());
     }
 }

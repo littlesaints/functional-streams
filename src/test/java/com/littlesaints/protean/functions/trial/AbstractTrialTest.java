@@ -106,7 +106,7 @@ public abstract class AbstractTrialTest {
     @Test
     public void test_exit_after_n_retries_no_increase() {
         final int simulatedTries = 5;
-        final Strategy strategy = Strategy.builder()
+        final Strategy strategy = Strategy.DEFAULT.get().toBuilder()
                 .maxTriesWithYield(5)
                 .maxTriesWithDelay(5)
                 .triesUntilDelayIncrease(Constants.NO_DELAY_INCREASE)

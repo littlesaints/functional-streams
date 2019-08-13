@@ -20,11 +20,8 @@
 
 package com.littlesaints.protean.functions.trial;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 import lombok.Builder.Default;
-import lombok.Getter;
-import lombok.ToString;
 
 import java.util.Optional;
 import java.util.function.IntFunction;
@@ -60,9 +57,10 @@ import static com.littlesaints.protean.functions.trial.Defaults.*;
 @ToString
 @Builder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
 public class Strategy {
 
-    public static Supplier<Strategy> DEFAULT = () -> Strategy.builder().build();
+    public static Supplier<Strategy> DEFAULT = Strategy::new;
 
     public static IntFunction<Strategy> CONSTANT_DELAY_UNBOUNDED_TRIES = delayInMillis -> Strategy.builder()
             .delayBetweenTriesInMillis(delayInMillis)

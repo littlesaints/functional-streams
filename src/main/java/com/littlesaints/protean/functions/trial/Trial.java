@@ -54,7 +54,7 @@ import java.util.function.UnaryOperator;
  * Hence, the total attempts made by a Trial instance will be one more than the sum of attemptedTriesWithXXX metrics.
  *
  * Available statistics:
- * {@link #getCurrentDelayBetweenTriesInMillis()}, {@link #getAttemptedTriesWithYield()}, {@link #getAttemptedTriesWithDelay()} and {@link #getRemainingTriesUntilDelayIncrease()}
+ * {@link State#getCurrentDelayBetweenTriesInMillis()}, {@link State#getAttemptedTriesWithYield()}, {@link State#getAttemptedTriesWithDelay()} and {@link State#getRemainingTriesUntilDelayIncrease()}
  * </pre>
  *
  * @author Varun Anand
