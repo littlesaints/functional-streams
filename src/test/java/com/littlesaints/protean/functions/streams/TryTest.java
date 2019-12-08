@@ -55,11 +55,11 @@ public class TryTest {
                 return Integer.parseInt(s);
             }})
         .onSuccess(successOp)
-        .onFailure(failureOp)
+        .onException(failureOp)
         .onFinally(finallyOp));
 
     private final Try <String, Optional<Integer>> TRY_NO_ON_SUCCESS = Try.wrapWithOptional(Try.<String, Integer>evaluate(Integer::parseInt)
-            .onFailure(failureOp)
+            .onException(failureOp)
             .onFinally(finallyOp));
 
     private final Try <String, Optional<Integer>> TRY_NO_ON_FAILURE = Try.wrapWithOptional(Try.<String, Integer>evaluate(Integer::parseInt)
@@ -69,7 +69,7 @@ public class TryTest {
     private final Try <String, Optional<Integer>> TRY_NO_ON_FINALLY = Try.wrapWithOptional(
             Try.<String, Integer>evaluate(Integer::parseInt)
             .onSuccess(successOp)
-            .onFailure(failureOp));
+            .onException(failureOp));
 
     @Before
     public void init() {

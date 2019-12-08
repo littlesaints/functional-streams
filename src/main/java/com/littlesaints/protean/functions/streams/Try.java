@@ -58,7 +58,7 @@ import java.util.function.Function;
  *     Arrays.stream(new String[]{"1", "2", "a", "3"})
  *         .map(
  *             Try.<String, Integer> evaluate(Integer::parseInt)
- *                 .onFailure((string, exception) -> Integer.MIN_VALUE))
+ *                 .onException((string, exception) -> Integer.MIN_VALUE))
  *         .forEach(System.out::println);
  * }
  *
@@ -105,7 +105,7 @@ public class Try<T, R> implements Function<T, R> {
      * Create a Try function that returns an {@link Optional}.
      *
      * This is useful when the application doesn't want to handle {@code null} directly but the code can return {@code null}
-     * or there's no code mapped to 'onSuccess' or 'onFailure' construct.
+     * or there's no code mapped to 'onSuccess' or 'onException' construct.
      * </pre>
      *
      * @return a copy of this 'Try' function.
@@ -113,7 +113,7 @@ public class Try<T, R> implements Function<T, R> {
     public Try<T, Optional<R>> wrapWithOptional() {
         return Try.<T, Optional<R>>evaluate(t -> Optional.ofNullable(mapper.apply(t)))
                 .onSuccess((t, or) -> successOp.apply(t, or.orElse(null)))
-                .onFailure((t, x) -> Optional.ofNullable(failureMapper.apply(t, x)))
+                .onException((t, x) -> Optional.ofNullable(failureMapper.apply(t, x)))
                 .onFinally(finallyOp);
     }
 
@@ -134,9 +134,22 @@ public class Try<T, R> implements Function<T, R> {
      * @param failureMapper to be called when the Try results in an exception being thrown
      * @return this Try instance
      */
-    public Try<T, R> onFailure(BiFunction<T, Exception, R> failureMapper) {
+    public Try<T, R> onException(BiFunction<T, Exception, R> failureMapper) {
         Objects.requireNonNull(failureMapper);
         this.failureMapper = failureMapper;
+        return this;
+    }
+
+    /**
+     * @param failureOp to be called when the Try results in an exception being thrown
+     * @return this Try instance
+     */
+    public Try<T, R> onFailure(BiConsumer<T, Exception> failureOp) {
+        Objects.requireNonNull(failureMapper);
+        this.failureMapper = (t, e) -> {
+            failureOp.accept(t, e);
+            return null;
+        };
         return this;
     }
 
